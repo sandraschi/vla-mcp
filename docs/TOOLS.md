@@ -1,0 +1,73 @@
+# MCP Tool Reference
+
+## vla_status
+
+Read-only stack snapshot: Wall-OSS, WALL-WM, DMuon, HF cache, episode count.
+
+## vla_weights
+
+| Operation | Description |
+|-----------|-------------|
+| `list_models` | Catalog wall-oss-0.5 and wall-wm |
+| `local_status` | Cache paths (`model_key` optional) |
+| `download` | HF snapshot_download (`model_key` required) |
+
+## vla_wall
+
+Wall-OSS-0.5 VLA: `health`, `infer_prepare`, `finetune_prepare`, `list_tasks`.
+
+## vla_world_model
+
+WALL-WM: `health`, `train_prepare`, `predict_prepare`, `event_vocab`.
+
+## vla_dataset
+
+| Operation | Description |
+|-----------|-------------|
+| `ingest_episode` | Manual event tags + video paths |
+| `segment_telemetry` | Auto event joints from telemetry rows |
+| `list_episodes` | Paginated (`limit`, `offset`) |
+| `export_shard` | JSON manifest |
+| `export_numpy_shard` | Manifest + `.npy` actions |
+| `validate_multiview` | Check video files exist |
+
+Telemetry sample fields: `timestamp`, `velocity`, `contact_force`, `gripper_open`, `distance_to_target`, `collision_flag`, `slip_variance`.
+
+## vla_events
+
+`segment` (telemetry samples), `vocab` (event joint list).
+
+## vla_training
+
+| Operation | Description |
+|-----------|-------------|
+| `co_train_prepare` | Validate upstream + shard |
+| `config_template` | YAML skeleton |
+| `launch_co_train` | Subprocess (`confirm=True` to run, `dry_run=True` to preview) |
+| `job_status` | List or get job by `job_id` |
+| `stop_job` | Kill Windows job by `job_id` |
+
+## vla_fleet
+
+| Operation | Description |
+|-----------|-------------|
+| `list_peers` | Default URLs |
+| `bridge_status` | HTTP health probes |
+| `scenario_brief` | Closed-loop sim plan |
+| `call_peer` | REST bridge (`peer`, `tool_name`, `arguments`) |
+
+## vla_agentic_workflow
+
+Multi-step planning with optional `ctx.sample`.
+
+## show_vla_status_card
+
+Prefab in-chat card (when `VLA_PREFAB_APPS=1`).
+
+## Examples
+
+```python
+await vla_dataset(operation="segment_telemetry", source="raspbot_sim", telemetry=[...])
+await vla_training(operation="launch_co_train", dry_run=True, dataset_shard="train_001")
+await vla_fleet(operation="call_peer", peer="robotics", tool_name="robotics_system", arguments={"operation": "status"})
+```

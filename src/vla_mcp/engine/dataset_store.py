@@ -117,3 +117,58 @@ class DatasetStore:
                 "calibration-free fusion is upstream-side."
             ),
         }
+
+    def segment_and_ingest(
+        self,
+        *,
+        source: str,
+        telemetry: list[dict[str, Any]],
+        video_paths: list[str] | None = None,
+        action_path: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        from .event_segmenter import EventSegmenter
+
+        seg = EventSegmenter().segment(telemetry)
+        if not seg.get("success"):
+            return seg
+        events = seg.get("events") or []
+        meta = {**(metadata or {}), "segments": seg.get("segments", [])}
+        return self.ingest_episode(
+            source=source,
+            events=events,
+            video_paths=video_paths,
+            action_path=action_path,
+            metadata=meta,
+        )
+
+    def export_numpy_shard(self, *, shard_name: str, episode_ids: list[str] | None = None) -> dict[str, Any]:
+        import numpy as np
+
+        manifest_result = self.export_shard(shard_name=shard_name, episode_ids=episode_ids)
+        if not manifest_result.get("success"):
+            return manifest_result
+        manifest_path = Path(manifest_result["export_path"])
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        arrays_dir = self.root / "exports" / "numpy" / shard_name
+        arrays_dir.mkdir(parents=True, exist_ok=True)
+        written = 0
+        for ep in manifest.get("episodes", []):
+            actions = ep.get("metadata", {}).get("actions")
+            if actions is None and ep.get("action_path"):
+                ap = Path(ep["action_path"])
+                if ap.suffix == ".npy" and ap.is_file():
+                    written += 1
+                    continue
+            if isinstance(actions, list) and actions:
+                out = arrays_dir / f"{ep['id']}_actions.npy"
+                np.save(out, np.asarray(actions, dtype=np.float32))
+                written += 1
+        return {
+            "success": True,
+            "manifest_path": str(manifest_path),
+            "numpy_dir": str(arrays_dir),
+            "arrays_written": written,
+            "episode_count": manifest_result.get("episode_count", 0),
+            "message": "JSON manifest + numpy action arrays for DMuon dataloaders.",
+        }

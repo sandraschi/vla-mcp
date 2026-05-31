@@ -1,40 +1,31 @@
 # vla-mcp Agent Context
 
-FastMCP 3.2 bridge for Vision-Language-Action: Wall-OSS-0.5, WALL-WM (Wan), DMuon, fleet simulation loops.
+FastMCP 3.2 VLA bridge (v0.2.0): Wall-OSS-0.5, WALL-WM, DMuon, HF weights, event joints.
 
 ## Quick ref
 
 ```powershell
 uv sync --extra dev
 uv run pytest tests -q
-just serve          # backend :11024
-just web            # frontend :11025
-.\start.bat         # both
+just serve    # :11024
+just web      # :11025
+.\start.bat
 ```
 
-## Ports
+GitHub: https://github.com/sandraschi/vla-mcp
 
-| Service | Port |
-|---------|------|
-| Backend | 11024 |
-| Frontend | 11025 |
+## Phase 2 tools
 
-## Tools
+| Tool | New ops |
+|------|---------|
+| vla_weights | list_models, download, local_status |
+| vla_events | segment, vocab |
+| vla_dataset | segment_telemetry, export_numpy_shard |
+| vla_training | launch_co_train, job_status, stop_job |
+| vla_fleet | call_peer |
 
-| Tool | Operations |
-|------|------------|
-| vla_wall | health, infer_prepare, finetune_prepare, list_tasks |
-| vla_world_model | health, train_prepare, predict_prepare, event_vocab |
-| vla_dataset | ingest_episode, list_episodes, export_shard, validate_multiview |
-| vla_training | health, co_train_prepare, config_template |
-| vla_fleet | bridge_status, scenario_brief, list_peers |
-| vla_status | Full stack snapshot |
-| vla_agentic_workflow | SEP-1577 planning |
+DMuon launch requires `confirm=True`. HF download needs valid repo ids + optional HF token.
 
-## Env
+## Docs
 
-See `.env.example`. Key: `VLA_WALL_X_ROOT`, `VLA_DATASET_ROOT`, fleet MCP URLs.
-
-## Honesty
-
-Prep/orchestration only until Phase 2 subprocess hooks land. Never fake GPU/upstream success.
+README.md (user) · INSTALL.md · docs/TOOLS.md · docs/CONFIGURATION.md

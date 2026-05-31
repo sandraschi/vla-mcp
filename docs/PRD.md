@@ -1,6 +1,6 @@
 # Product Requirements Document - vla-mcp
 
-**Version:** 0.1.0 (scaffold)  
+**Version:** 0.2.0  
 **Last updated:** 2026-05-31  
 **Upstream:** https://github.com/X-Square-Robot/wall-x  
 **Fleet standard:** mcp-central-docs SOTA 3.2
@@ -41,10 +41,13 @@ Wall-OSS-0.5 (edge infer) + WALL-WM (sim rollouts)
 | REQ-04 | Dual transport stdio + HTTP on 11024 | Done |
 | REQ-05 | Vite dashboard on 11025 | Done |
 | REQ-06 | Skills + prompts + Prefab status card | Done |
-| REQ-07 | Wire real wall-x train/infer subprocess hooks | Planned |
-| REQ-08 | MCP bridge proxy to worldlabs/robotics/avatar | Planned |
-| REQ-09 | LanceDB / numpy shard writer for DMuon | Planned |
+| REQ-07 | Wire real wall-x train/infer subprocess hooks | Done (DMuon launch + dry_run) |
+| REQ-08 | MCP bridge proxy to worldlabs/robotics/avatar | Done |
+| REQ-09 | numpy shard writer for DMuon | Done |
 | REQ-10 | X-VLA 0.9B PEFT path for edge secondary agents | Planned |
+| REQ-11 | HF weight download helper | Done |
+| REQ-12 | Event telemetry segmenter | Done |
+| REQ-13 | SOTA webapp + multifile README | Done |
 
 ## Non-goals (v0.1)
 

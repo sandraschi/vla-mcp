@@ -82,3 +82,56 @@ class FleetBridge:
             "peers": self.peer_urls(),
             "message": "Closed-loop synthetic training brief for Wall-OSS + WALL-WM.",
         }
+
+    async def call_peer(
+        self,
+        peer: str,
+        tool_name: str,
+        arguments: dict | None = None,
+    ) -> dict:
+        """Invoke a tool on a fleet peer via HTTP REST bridge."""
+        urls = self.peer_urls()
+        key = peer.strip().lower().replace("_", "-")
+        alias = {
+            "worldlabs": "worldlabs-mcp",
+            "robotics": "robotics-mcp",
+            "avatar": "avatarops",
+            "avatar-mcp": "avatarops",
+            "avatarops": "avatarops",
+        }
+        name = alias.get(key, key)
+        base = urls.get(name)
+        if not base:
+            return {
+                "success": False,
+                "error": f"Unknown peer: {peer}",
+                "recovery_options": list(urls.keys()),
+            }
+        args = arguments or {}
+        endpoints = [
+            ("/api/v1/control/" + tool_name, args),
+            ("/api/v1/tools/execute", {"tool_name": tool_name, "arguments": args}),
+            ("/api/execute", {"tool": tool_name, "params": args}),
+        ]
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            for path, body in endpoints:
+                try:
+                    r = await client.post(base.rstrip("/") + path, json=body)
+                    if r.status_code == 404:
+                        continue
+                    r.raise_for_status()
+                    data = r.json()
+                    return {
+                        "success": True,
+                        "peer": name,
+                        "endpoint": path,
+                        "result": data,
+                    }
+                except httpx.HTTPError:
+                    continue
+        return {
+            "success": False,
+            "error": f"No REST bridge accepted tool {tool_name} on {name}",
+            "peer_url": base,
+            "recovery_options": ["Start peer MCP HTTP server", "Set VLA_*_MCP_URL"],
+        }

@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "vla-mcp",
-  "version": "0.1.0",
-  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, fleet simulation data loops",
+  "version": "0.2.0",
+  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, HF weights, event-joint dataset loop",
   "author": {
     "name": "Sandra Schipal",
     "email": "sandra@sandraschi.dev"
@@ -21,24 +21,18 @@
     }
   },
   "env": [
-    {
-      "name": "VLA_WALL_X_ROOT",
-      "description": "Clone of github.com/X-Square-Robot/wall-x",
-      "required": false
-    },
-    {
-      "name": "VLA_DATASET_ROOT",
-      "description": "Local episode and export directory",
-      "required": false
-    }
+    { "name": "VLA_WALL_X_ROOT", "description": "Clone of github.com/X-Square-Robot/wall-x", "required": false },
+    { "name": "VLA_DATASET_ROOT", "description": "Episode and export directory", "required": false }
   ],
   "tools": [
-    { "name": "vla_status", "description": "VLA stack status snapshot" },
-    { "name": "vla_wall", "description": "Wall-OSS-0.5 VLA operations" },
-    { "name": "vla_world_model", "description": "WALL-WM world action model operations" },
-    { "name": "vla_dataset", "description": "Event-grounded trajectory registry" },
-    { "name": "vla_training", "description": "DMuon co-training prep" },
-    { "name": "vla_fleet", "description": "Fleet simulation peer orchestration" },
-    { "name": "vla_agentic_workflow", "description": "Multi-step VLA session planning" }
+    { "name": "vla_status", "description": "VLA stack status" },
+    { "name": "vla_weights", "description": "Hugging Face checkpoint download" },
+    { "name": "vla_wall", "description": "Wall-OSS-0.5 VLA" },
+    { "name": "vla_world_model", "description": "WALL-WM world model" },
+    { "name": "vla_dataset", "description": "Event-joint dataset + numpy export" },
+    { "name": "vla_events", "description": "Telemetry event segmentation" },
+    { "name": "vla_training", "description": "DMuon co-train launch" },
+    { "name": "vla_fleet", "description": "Fleet peer bridge" },
+    { "name": "vla_agentic_workflow", "description": "Multi-step VLA planning" }
   ]
 }
