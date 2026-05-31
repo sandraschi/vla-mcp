@@ -1,6 +1,6 @@
 [project]
 name = "vla-mcp"
-version = "0.3.0"
+version = "0.3.1"
 description = "FastMCP 3.2 bridge for Vision-Language-Action: Wall-OSS-0.5, WALL-WM, DMuon co-training, and fleet simulation loops"
 readme = "README.md"
 requires-python = ">=3.12"

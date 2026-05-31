@@ -9,8 +9,8 @@ from pathlib import Path
 from ..config import VLAConfig, get_config
 from .hf_weights import HFWeightManager
 
-XVLA_DOCS = "https://thu-air-dream.github.io/X-VLA"
-XVLA_REPO = "https://github.com/THUDM/X-VLA"
+XVLA_DOCS = "https://huggingface.co/docs/lerobot/en/xvla"
+XVLA_REPO = "https://github.com/2toinf/X-VLA"
 
 EDGE_TARGETS = (
     {"id": "raspbot", "mcp": "yahboom-mcp", "notes": "Raspberry Pi 5 Yahboom Raspbot car"},
@@ -121,7 +121,8 @@ class XVLAAdapter:
             "vla_weights(operation='download', model_key='x-vla') — cache 0.9B base weights",
             f"vla_xvla(operation='peft_prepare', target='{target}', write=True) — write LoRA config",
             "Fine-tune adapter in VLA_XVLA_ROOT per upstream README (PEFT on fleet shards)",
-            "vla_fleet(operation='call_peer', peer='yahboom', tool_name='robotics_system', ...)",
+            "vla_fleet(operation='call_peer', peer='yahboom', tool_name='yahboom_demo', arguments={'operation': 'talkbot'})",
+            "vla_fleet(operation='call_peer', peer='yahboom', tool_name='yahboom_tool', arguments={'operation': 'read_imu'})",
             f"Deploy merged adapter to edge; set VLA_XVLA_PEFT_ADAPTER; infer on {self.config.xvla_edge_device}",
         ]
         return {

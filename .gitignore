@@ -15,3 +15,4 @@ target/
 htmlcov/
 .coverage
 _dashboard/
+*.bak

@@ -1,5 +1,5 @@
 # vla-mcp webapp launcher (fleet START_SCRIPT_STANDARD)
-param([switch]$Headless, [switch]$BackendOnly, [switch]$NoBrowser)
+param([switch]$Headless, [switch]$BackendOnly, [switch]$NoBrowser, [switch]$Demo)
 
 $BackendPort = 11024
 $FrontendPort = 11025
@@ -72,6 +72,20 @@ if ($ready) {
     exit 1
 }
 
+if ($Demo) {
+    Write-Host "[..] seeding demo episodes via vla_pipeline" -ForegroundColor Yellow
+    $demoHeaders = @{ "X-VLA-Confirm" = "1"; "Content-Type" = "application/json" }
+    foreach ($fail in @($true, $false, $true)) {
+        $demoBody = @{ live = $false; include_failures = $fail } | ConvertTo-Json
+        try {
+            Invoke-RestMethod -Uri "http://127.0.0.1:$BackendPort/api/v1/pipeline/run" -Method Post -Headers $demoHeaders -Body $demoBody -TimeoutSec 30 -ErrorAction Stop | Out-Null
+            Write-Host "  [ok] seeded run (failures=$fail)" -ForegroundColor DarkGray
+        } catch {
+            Write-Host "  [!!] seed run failed: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    }
+}
+
 if ($BackendOnly) {
     Write-Host "Backend-only mode. Press Enter to stop."
     Read-Host
@@ -87,6 +101,7 @@ $frontendProc = Start-Process -FilePath $viteBin -WorkingDirectory (Join-Path $R
 
 Start-Sleep -Seconds 2
 $url = "http://127.0.0.1:$FrontendPort"
+if ($Demo) { $url = "http://127.0.0.1:$FrontendPort/pipeline" }
 if (-not $NoBrowser) { Start-Process $url }
 Write-Host "[ok] Frontend $url" -ForegroundColor Green
 Write-Host "Press Enter to stop both services."

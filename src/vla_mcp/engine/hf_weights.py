@@ -18,7 +18,7 @@ CATALOG = {
     },
     "x-vla": {
         "env_key": "hf_xvla_repo",
-        "description": "Tsinghua X-VLA 0.9B flow-matching VLA for edge PEFT",
+        "description": "2toinf X-VLA 0.9B soft-prompted flow-matching VLA for edge PEFT (ICLR 2026; in LeRobot)",
     },
 }
 

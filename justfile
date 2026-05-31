@@ -36,3 +36,6 @@ fix:
 
 health:
     Invoke-RestMethod -Uri "http://127.0.0.1:11024/api/v1/status"
+
+demo:
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\webapp\start.ps1' -Demo

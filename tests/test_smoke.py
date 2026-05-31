@@ -159,6 +159,7 @@ async def test_prefab_tool_registered(monkeypatch):
     if "show_vla_status_card" not in names:
         pytest.skip("prefab-ui not installed or Prefab registration unavailable")
     assert "show_vla_status_card" in names
+    assert "show_pipeline_run_card" in names
 
 
 @pytest.mark.asyncio
@@ -227,7 +228,20 @@ async def test_api_tools_list():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/api/v1/tools")
         assert resp.status_code == 200
-        assert resp.json()["count"] >= 11
+        assert resp.json()["count"] >= 12
+
+
+def test_rest_policy_world_requires_confirm():
+    ok, _ = rest_control_allowed("vla_world", {"operation": "generate"}, confirm_header=None)
+    assert ok is False
+    ok2, _ = rest_control_allowed("vla_world", {"operation": "generate"}, confirm_header="1")
+    assert ok2 is True
+
+
+@pytest.mark.asyncio
+async def test_vla_world_describe():
+    result = await mcp.call_tool("vla_world", {"operation": "describe"})
+    assert result is not None
 
 
 @pytest.mark.asyncio

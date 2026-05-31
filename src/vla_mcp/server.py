@@ -55,7 +55,7 @@ logger = structlog.get_logger(__name__)
 
 INSTRUCTIONS = (
     "You are VLA-MCP (FastMCP 3.2): bridge to X Square wall-x (Wall-OSS-0.5 VLA, WALL-WM on Wan, "
-    "DMuon co-training) and THUDM X-VLA 0.9B PEFT for edge agents. Orchestrate worldlabs-mcp, "
+    "DMuon co-training) and 2toinf X-VLA 0.9B PEFT for edge agents. Orchestrate worldlabs-mcp, "
     "yahboom-mcp, avatarops for event-joint data. Use vla_status first; vla_weights for HF checkpoints; "
     "vla_xvla for edge PEFT; vla_dataset segment_telemetry; vla_training launch_co_train requires confirm=True."
 )
@@ -387,6 +387,9 @@ def build_mcp() -> FastMCP:
         include_failures: bool = True,
         room_style: str = "cluttered_indoor",
         fallback_simulate: bool = True,
+        boomy_demo: str | None = None,
+        boomy_pattern: str = "boomy_b",
+        generate_world: bool | None = None,
     ) -> dict[str, Any]:
         """VLA_PIPELINE - End-to-end loop: fleet → ingest → numpy export → DMuon dry_run."""
         pipe = PipelineRunner.default()
@@ -401,6 +404,9 @@ def build_mcp() -> FastMCP:
                 include_failures=include_failures,
                 room_style=room_style,
                 fallback_simulate=fallback_simulate,
+                boomy_demo=boomy_demo,
+                boomy_pattern=boomy_pattern,
+                generate_world=generate_world,
             )
         return {"success": False, "error": f"Unknown operation: {operation}"}
 
@@ -430,6 +436,41 @@ def build_mcp() -> FastMCP:
             if not peer or not tool_name:
                 return {"success": False, "error": "peer and tool_name required for call_peer"}
             return await bridge.call_peer(peer, tool_name, arguments)
+        return {"success": False, "error": f"Unknown operation: {operation}"}
+
+    @mcp.tool()
+    async def vla_world(
+        operation: Literal["describe", "generate"],
+        prompt: str = "cluttered indoor room with a table, chairs, and scattered objects",
+    ) -> dict[str, Any]:
+        """VLA_WORLD - Generate a navigable 3D room via worldlabs-mcp; returns the Marble viewer URL.
+
+        Args:
+            operation: describe (config + peer) or generate (create a 3D world from prompt)
+            prompt: Scene description for the room generator
+
+        Returns:
+            describe metadata, or generate result with viewer_url when worldlabs-mcp is reachable.
+        """
+        bridge = FleetBridge.default()
+        cfg = get_config()
+        if operation == "describe":
+            return {
+                "success": True,
+                "peer": "worldlabs-mcp",
+                "peer_url": bridge.peer_urls().get("worldlabs-mcp"),
+                "gen_tool": cfg.worldlabs_gen_tool,
+                "gen_arg": cfg.worldlabs_gen_arg,
+                "message": (
+                    "vla_world(operation='generate', prompt=...) bridges to worldlabs-mcp to create "
+                    "a 3D room and returns the viewer URL. Set VLA_WORLDLABS_GEN_TOOL / "
+                    "VLA_WORLDLABS_GEN_ARG to match the live worldlabs-mcp tool."
+                ),
+            }
+        if operation == "generate":
+            if not prompt:
+                return {"success": False, "error": "prompt required for generate"}
+            return await bridge.generate_world(prompt)
         return {"success": False, "error": f"Unknown operation: {operation}"}
 
     @mcp.tool()
@@ -485,6 +526,7 @@ def build_mcp() -> FastMCP:
             "vla_events": vla_events,
             "vla_training": vla_training,
             "vla_fleet": vla_fleet,
+            "vla_world": vla_world,
             "vla_agentic_workflow": vla_agentic_workflow,
         }
     )

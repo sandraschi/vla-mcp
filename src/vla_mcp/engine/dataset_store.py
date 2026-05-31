@@ -151,7 +151,7 @@ class DatasetStore:
             return seg
         events = seg.get("events") or []
         meta = {**(metadata or {}), "segments": seg.get("segments", [])}
-        return self.ingest_episode(
+        result = self.ingest_episode(
             source=source,
             events=events,
             video_paths=video_paths,
@@ -159,6 +159,9 @@ class DatasetStore:
             actions=actions,
             metadata=meta,
         )
+        result["segments"] = seg.get("segments", [])
+        result["events"] = events
+        return result
 
     def export_numpy_shard(self, *, shard_name: str, episode_ids: list[str] | None = None) -> dict[str, Any]:
         import numpy as np
