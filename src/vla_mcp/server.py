@@ -23,6 +23,7 @@ from .engine.fleet_bridge import FleetBridge
 from .engine.hf_weights import HFWeightManager
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
+from .engine.xvla_adapter import XVLAAdapter
 from .prompts_resources import register_prompts_and_resources
 from .tools.prefab import register_prefab_tools
 from .web import setup_webapp
@@ -53,9 +54,9 @@ logger = structlog.get_logger(__name__)
 
 INSTRUCTIONS = (
     "You are VLA-MCP (FastMCP 3.2): bridge to X Square wall-x (Wall-OSS-0.5 VLA, WALL-WM on Wan, "
-    "DMuon co-training). Orchestrate worldlabs-mcp, robotics-mcp, avatarops for event-joint data. "
-    "Use vla_status first; vla_weights to pull HF checkpoints; vla_dataset segment_telemetry for "
-    "event joints; vla_training launch_co_train requires confirm=True."
+    "DMuon co-training) and THUDM X-VLA 0.9B PEFT for edge agents. Orchestrate worldlabs-mcp, "
+    "yahboom-mcp, avatarops for event-joint data. Use vla_status first; vla_weights for HF checkpoints; "
+    "vla_xvla for edge PEFT; vla_dataset segment_telemetry; vla_training launch_co_train requires confirm=True."
 )
 
 _READ_ONLY = {"readOnlyHint": True}
@@ -65,8 +66,11 @@ _ALL_TOOLS: dict[str, Callable[..., Awaitable[Any]]] = {}
 def _mount_fleet_proxies(mcp: FastMCP) -> list[str]:
     from fastmcp.server import create_proxy
 
-    mounted: list[str] = []
     cfg = get_config()
+    if not cfg.mount_fleet_proxies:
+        return []
+
+    mounted: list[str] = []
     raw = cfg.mcp_bridge_urls or os.getenv("VLA_MCP_BRIDGE_URLS", "")
     if not raw:
         peers = FleetBridge.default().peer_urls()
@@ -118,11 +122,12 @@ def build_mcp() -> FastMCP:
             "wall": WallRunner.default().health(),
             "world_model": WorldModelRunner.default().health(),
             "dmuon": DMuonRunner.default().health(),
+            "xvla": XVLAAdapter.default().health(),
             "weights": hf,
             "dataset_root": cfg.dataset_root,
             "dataset_episodes": ep.get("total", 0),
             "device": cfg.device,
-            "phase": "0.2.0",
+            "phase": "0.2.1",
             "message": "VLA stack status.",
         }
 
@@ -159,9 +164,10 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_wall(
-        operation: Literal["health", "infer_prepare", "finetune_prepare", "list_tasks"],
+        operation: Literal["health", "infer_prepare", "finetune_prepare", "list_tasks", "edge_prepare"],
         task_hint: str | None = None,
         recipe: str | None = None,
+        target: str = "raspbot",
     ) -> dict[str, Any]:
         """VLA_WALL - Portmanteau for Wall-OSS-0.5 VLA (gradient-bridged MoT + flow matching)."""
         runner = WallRunner.default()
@@ -173,6 +179,39 @@ def build_mcp() -> FastMCP:
             return runner.finetune_prepare(recipe=recipe)
         if operation == "list_tasks":
             return runner.list_tasks()
+        if operation == "edge_prepare":
+            return runner.edge_prepare(target=target)
+        return {"success": False, "error": f"Unknown operation: {operation}"}
+
+    @mcp.tool()
+    async def vla_xvla(
+        operation: Literal[
+            "health",
+            "list_targets",
+            "peft_config_template",
+            "peft_prepare",
+            "edge_prepare",
+            "infer_prepare",
+        ],
+        target: str = "raspbot",
+        rank: int = 8,
+        write: bool = False,
+        task_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """VLA_XVLA - X-VLA 0.9B flow-matching VLA with PEFT for edge agents (Raspbot/Boomy)."""
+        adapter = XVLAAdapter.default()
+        if operation == "health":
+            return {"success": True, "result": adapter.health(), "message": "X-VLA edge adapter status."}
+        if operation == "list_targets":
+            return adapter.list_targets()
+        if operation == "peft_config_template":
+            return adapter.peft_config_template(target=target, rank=rank)
+        if operation == "peft_prepare":
+            return adapter.peft_prepare(target=target, rank=rank, write=write)
+        if operation == "edge_prepare":
+            return adapter.edge_prepare(target=target)
+        if operation == "infer_prepare":
+            return adapter.infer_prepare(target=target, task_hint=task_hint)
         return {"success": False, "error": f"Unknown operation: {operation}"}
 
     @mcp.tool()
@@ -207,6 +246,7 @@ def build_mcp() -> FastMCP:
         events: list[str] | None = None,
         video_paths: list[str] | None = None,
         action_path: str | None = None,
+        actions: list[Any] | None = None,
         metadata: dict[str, Any] | None = None,
         telemetry: list[dict[str, Any]] | None = None,
         limit: int = 50,
@@ -224,6 +264,7 @@ def build_mcp() -> FastMCP:
                 events=events,
                 video_paths=video_paths,
                 action_path=action_path,
+                actions=actions,
                 metadata=metadata,
             )
         if operation == "segment_telemetry":
@@ -234,6 +275,7 @@ def build_mcp() -> FastMCP:
                 telemetry=telemetry,
                 video_paths=video_paths,
                 action_path=action_path,
+                actions=actions,
                 metadata=metadata,
             )
         if operation == "list_episodes":
@@ -365,7 +407,7 @@ def build_mcp() -> FastMCP:
         fallback_steps = [
             "vla_weights(operation='list_models')",
             "vla_fleet(operation='scenario_brief', include_failures=True)",
-            "vla_fleet(operation='call_peer', peer='robotics', tool_name='...')",
+            "vla_fleet(operation='call_peer', peer='yahboom', tool_name='...')",
             "vla_dataset(operation='segment_telemetry', ...)",
             "vla_dataset(operation='export_numpy_shard', shard_name='train_001')",
             "vla_training(operation='launch_co_train', confirm=True)",
@@ -392,7 +434,6 @@ def build_mcp() -> FastMCP:
         }
 
     register_prompts_and_resources(mcp)
-    register_prefab_tools(mcp)
     _add_skills_provider(mcp)
 
     _ALL_TOOLS.clear()
@@ -401,6 +442,7 @@ def build_mcp() -> FastMCP:
             "vla_status": vla_status,
             "vla_weights": vla_weights,
             "vla_wall": vla_wall,
+            "vla_xvla": vla_xvla,
             "vla_world_model": vla_world_model,
             "vla_dataset": vla_dataset,
             "vla_events": vla_events,
@@ -409,16 +451,21 @@ def build_mcp() -> FastMCP:
             "vla_agentic_workflow": vla_agentic_workflow,
         }
     )
+    register_prefab_tools(mcp, _ALL_TOOLS)
     return mcp
 
 
 mcp = build_mcp()
 _mcp_http = mcp.http_app(path="/")
+_cfg = get_config()
 app = FastAPI(title="VLA-MCP", lifespan=_mcp_http.lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=[
+        f"http://127.0.0.1:{_cfg.frontend_port}",
+        f"http://localhost:{_cfg.frontend_port}",
+    ],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 setup_webapp(app, mcp, _ALL_TOOLS)

@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "vla-mcp",
-  "version": "0.2.0",
-  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, HF weights, event-joint dataset loop",
+  "version": "0.2.1",
+  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, HF weights, event-joint dataset loop",
   "author": {
     "name": "Sandra Schipal",
     "email": "sandra@sandraschi.dev"
@@ -27,7 +27,8 @@
   "tools": [
     { "name": "vla_status", "description": "VLA stack status" },
     { "name": "vla_weights", "description": "Hugging Face checkpoint download" },
-    { "name": "vla_wall", "description": "Wall-OSS-0.5 VLA" },
+    { "name": "vla_wall", "description": "Wall-OSS-0.5 VLA (+ edge_prepare alias)" },
+    { "name": "vla_xvla", "description": "X-VLA 0.9B PEFT edge adapter" },
     { "name": "vla_world_model", "description": "WALL-WM world model" },
     { "name": "vla_dataset", "description": "Event-joint dataset + numpy export" },
     { "name": "vla_events", "description": "Telemetry event segmentation" },

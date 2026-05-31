@@ -1,4 +1,4 @@
-"""Hugging Face weight download and cache management for Wall-OSS / WALL-WM."""
+"""Hugging Face weight download and cache management for Wall-OSS / WALL-WM / X-VLA."""
 
 from __future__ import annotations
 
@@ -16,7 +16,15 @@ CATALOG = {
         "env_key": "hf_wall_wm_repo",
         "description": "WALL-WM world action model (Wan video prior + action DiT)",
     },
+    "x-vla": {
+        "env_key": "hf_xvla_repo",
+        "description": "Tsinghua X-VLA 0.9B flow-matching VLA for edge PEFT",
+    },
 }
+
+
+def _slug(model_key: str) -> str:
+    return model_key.strip().lower().replace(".", "_").replace("-", "_")
 
 
 @dataclass
@@ -34,19 +42,24 @@ class HFWeightManager:
         p.mkdir(parents=True, exist_ok=True)
         return p
 
+    def local_dir_for(self, model_key: str) -> Path:
+        return self.cache_root() / _slug(model_key)
+
     def repo_id_for(self, model_key: str) -> str | None:
         key = model_key.strip().lower()
         if key in ("wall-oss", "wall-oss-0.5", "wall_oss"):
             return self.config.hf_wall_oss_repo
         if key in ("wall-wm", "wall_wm", "wallwm"):
             return self.config.hf_wall_wm_repo
+        if key in ("x-vla", "xvla", "x_vla"):
+            return self.config.hf_xvla_repo
         return None
 
     def list_models(self) -> dict:
         items = []
         for key, meta in CATALOG.items():
             repo = self.repo_id_for(key)
-            local = self.cache_root() / key.replace(".", "_")
+            local = self.local_dir_for(key)
             items.append(
                 {
                     "key": key,
@@ -63,8 +76,7 @@ class HFWeightManager:
             repo = self.repo_id_for(model_key)
             if not repo:
                 return {"success": False, "error": f"Unknown model key: {model_key}"}
-            slug = model_key.replace(".", "_").replace("-", "_")
-            local = self.cache_root() / slug
+            local = self.local_dir_for(model_key)
             return {
                 "success": True,
                 "model_key": model_key,
@@ -82,8 +94,7 @@ class HFWeightManager:
                 "error": f"Unknown model key: {model_key}",
                 "recovery_options": list(CATALOG.keys()),
             }
-        slug = model_key.replace(".", "_").replace("-", "_")
-        target = self.cache_root() / slug
+        target = self.local_dir_for(model_key)
         try:
             from huggingface_hub import snapshot_download
         except ImportError:
@@ -96,9 +107,7 @@ class HFWeightManager:
             path = snapshot_download(
                 repo_id=repo_id,
                 revision=revision,
-                cache_dir=str(self.cache_root()),
                 local_dir=str(target),
-                local_dir_use_symlinks=False,
             )
             return {
                 "success": True,
@@ -115,7 +124,7 @@ class HFWeightManager:
                 "repo_id": repo_id,
                 "recovery_options": [
                     "Verify repo id on Hugging Face",
-                    "Set VLA_HF_WALL_OSS_REPO or VLA_HF_WALL_WM_REPO",
+                    "Set VLA_HF_*_REPO env vars",
                     "Run huggingface-cli login if gated",
                 ],
             }

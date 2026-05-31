@@ -8,13 +8,26 @@ Read-only stack snapshot: Wall-OSS, WALL-WM, DMuon, HF cache, episode count.
 
 | Operation | Description |
 |-----------|-------------|
-| `list_models` | Catalog wall-oss-0.5 and wall-wm |
+| `list_models` | Catalog wall-oss-0.5, wall-wm, and x-vla |
 | `local_status` | Cache paths (`model_key` optional) |
 | `download` | HF snapshot_download (`model_key` required) |
 
 ## vla_wall
 
-Wall-OSS-0.5 VLA: `health`, `infer_prepare`, `finetune_prepare`, `list_tasks`.
+Wall-OSS-0.5 VLA: `health`, `infer_prepare`, `finetune_prepare`, `list_tasks`, `edge_prepare` (X-VLA edge checklist alias).
+
+## vla_xvla
+
+X-VLA 0.9B flow-matching VLA with PEFT for edge agents (Raspbot, Boomy, Pi5 car via yahboom-mcp):
+
+| Operation | Description |
+|-----------|-------------|
+| `health` | Upstream root, HF cache, PEFT adapter paths |
+| `list_targets` | Edge agent targets |
+| `peft_config_template` | LoRA skeleton (`target`, `rank`) |
+| `peft_prepare` | Write `peft_config.json` when `write=True` |
+| `edge_prepare` | Full deployment checklist |
+| `infer_prepare` | Edge inference prep (`task_hint` optional) |
 
 ## vla_world_model
 
@@ -24,7 +37,7 @@ WALL-WM: `health`, `train_prepare`, `predict_prepare`, `event_vocab`.
 
 | Operation | Description |
 |-----------|-------------|
-| `ingest_episode` | Manual event tags + video paths |
+| `ingest_episode` | Manual event tags + video paths (+ optional inline `actions`) |
 | `segment_telemetry` | Auto event joints from telemetry rows |
 | `list_episodes` | Paginated (`limit`, `offset`) |
 | `export_shard` | JSON manifest |
@@ -69,5 +82,6 @@ Prefab in-chat card (when `VLA_PREFAB_APPS=1`).
 ```python
 await vla_dataset(operation="segment_telemetry", source="raspbot_sim", telemetry=[...])
 await vla_training(operation="launch_co_train", dry_run=True, dataset_shard="train_001")
-await vla_fleet(operation="call_peer", peer="robotics", tool_name="robotics_system", arguments={"operation": "status"})
+await vla_xvla(operation="edge_prepare", target="raspbot")
+await vla_fleet(operation="call_peer", peer="yahboom", tool_name="robotics_system", arguments={"operation": "status"})
 ```

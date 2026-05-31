@@ -20,6 +20,8 @@ from .engine.fleet_bridge import FleetBridge
 from .engine.hf_weights import HFWeightManager
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
+from .engine.xvla_adapter import XVLAAdapter
+from .rest_policy import rest_control_allowed
 
 _START = time.time()
 _REPO_ROOT: Path | None = None
@@ -62,6 +64,7 @@ def setup_webapp(
                 "wall": WallRunner.default().health(),
                 "world_model": WorldModelRunner.default().health(),
                 "dmuon": DMuonRunner.default().health(),
+                "xvla": XVLAAdapter.default().health(),
                 "weights": HFWeightManager.default().list_models(),
                 "dataset_root": cfg.dataset_root,
                 "dataset_episodes": ep.get("total", 0),
@@ -83,6 +86,13 @@ def setup_webapp(
             body = {}
         if not isinstance(body, dict):
             body = {}
+        allowed, reason = rest_control_allowed(
+            tool_name,
+            body,
+            confirm_header=request.headers.get("X-VLA-Confirm"),
+        )
+        if not allowed:
+            raise HTTPException(status_code=403, detail=reason or "REST control denied")
         return await fn(**body)
 
     @app.get("/api/v1/fleet")
@@ -145,6 +155,7 @@ def setup_webapp(
                 "wall_oss": True,
                 "wall_wm": True,
                 "dmuon": True,
+                "xvla_peft": True,
                 "hf_weights": True,
                 "event_joints": True,
                 "dataset_store": True,

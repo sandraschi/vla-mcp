@@ -1,7 +1,8 @@
-"""Fleet peer URLs for worldlabs-mcp, robotics-mcp, avatarops."""
+"""Fleet peer URLs for worldlabs-mcp, yahboom-mcp, avatarops."""
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 
 import httpx
@@ -10,7 +11,7 @@ from ..config import VLAConfig, get_config
 
 DEFAULT_PEERS = {
     "worldlabs-mcp": "http://127.0.0.1:10865",
-    "robotics-mcp": "http://127.0.0.1:10892",
+    "yahboom-mcp": "http://127.0.0.1:10892",
     "avatarops": "http://127.0.0.1:10793",
 }
 
@@ -28,7 +29,7 @@ class FleetBridge:
     def peer_urls(self) -> dict[str, str | None]:
         return {
             "worldlabs-mcp": self.config.worldlabs_mcp_url or DEFAULT_PEERS["worldlabs-mcp"],
-            "robotics-mcp": self.config.robotics_mcp_url or DEFAULT_PEERS["robotics-mcp"],
+            "yahboom-mcp": self.config.yahboom_mcp_url or DEFAULT_PEERS["yahboom-mcp"],
             "avatarops": self.config.avatar_mcp_url or DEFAULT_PEERS["avatarops"],
         }
 
@@ -48,12 +49,12 @@ class FleetBridge:
 
     async def bridge_status(self) -> dict:
         peers = self.peer_urls()
-        results = []
-        for name, url in peers.items():
-            results.append(await self.probe_peer(name, url))
+        results = await asyncio.gather(
+            *[self.probe_peer(name, url) for name, url in peers.items()]
+        )
         return {
             "success": True,
-            "peers": results,
+            "peers": list(results),
             "message": "Fleet simulation boundary peers for VLA data loops.",
         }
 
@@ -67,9 +68,10 @@ class FleetBridge:
         agents = agents or ["raspbot", "vroid"]
         steps = [
             "worldlabs-mcp: generate navigable 3D room with multiview camera rigs",
-            "robotics-mcp: run Raspbot car tasks with event tags (approaching, contact, recovery)",
+            "yahboom-mcp: run Raspbot car tasks with event tags (approaching, contact, recovery)",
             "avatarops: VRoid interaction episodes with slip/collision corrections",
             "vla_dataset: ingest_episode for each run (success + failure trajectories)",
+            "vla_xvla: PEFT adapter for edge Raspbot; Wall-OSS on workstation",
             "vla_training: co_train_prepare with DMuon on exported shards",
         ]
         if include_failures:
@@ -94,7 +96,9 @@ class FleetBridge:
         key = peer.strip().lower().replace("_", "-")
         alias = {
             "worldlabs": "worldlabs-mcp",
-            "robotics": "robotics-mcp",
+            "yahboom": "yahboom-mcp",
+            "robotics": "yahboom-mcp",
+            "robotics-mcp": "yahboom-mcp",
             "avatar": "avatarops",
             "avatar-mcp": "avatarops",
             "avatarops": "avatarops",

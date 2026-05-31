@@ -17,6 +17,11 @@ from ..config import VLAConfig, get_config
 DMUON_REPO = "https://github.com/X-Square-Robot/wall-x"
 
 _jobs: dict[str, dict[str, Any]] = {}
+_drain_tasks: dict[str, asyncio.Task] = {}
+
+
+def _serialize_job(job: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in job.items() if k != "drain_task"}
 
 
 @dataclass
@@ -184,7 +189,7 @@ class DMuonRunner:
             _jobs[job_id]["exit_code"] = code
 
         task = asyncio.create_task(_drain())
-        _jobs[job_id]["drain_task"] = task
+        _drain_tasks[job_id] = task
         return {
             "success": True,
             "job_id": job_id,
@@ -198,8 +203,12 @@ class DMuonRunner:
             job = _jobs.get(job_id)
             if not job:
                 return {"success": False, "error": f"Unknown job_id: {job_id}"}
-            return {"success": True, "job": job}
-        return {"success": True, "jobs": list(_jobs.values()), "count": len(_jobs)}
+            return {"success": True, "job": _serialize_job(job)}
+        return {
+            "success": True,
+            "jobs": [_serialize_job(j) for j in _jobs.values()],
+            "count": len(_jobs),
+        }
 
     def stop_job(self, job_id: str) -> dict:
         job = _jobs.get(job_id)

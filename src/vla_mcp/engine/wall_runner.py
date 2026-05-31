@@ -110,3 +110,8 @@ class WallRunner:
             "count": len(WALL_OSS_TASKS),
             "message": "Representative Wall-OSS zero-shot task families (see upstream for full eval).",
         }
+
+    def edge_prepare(self, *, target: str = "raspbot") -> dict:
+        from .xvla_adapter import XVLAAdapter
+
+        return XVLAAdapter.default().edge_prepare(target=target)
