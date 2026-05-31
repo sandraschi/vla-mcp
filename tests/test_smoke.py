@@ -19,7 +19,7 @@ from vla_mcp.server import app, mcp
 
 
 def test_package_version():
-    assert __version__ == "0.3.0"
+    assert __version__ == "0.3.1b1"
 
 
 def test_event_segmenter():
