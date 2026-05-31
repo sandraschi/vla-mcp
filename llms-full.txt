@@ -1,0 +1,43 @@
+# vla-mcp full index
+
+## Purpose
+
+Orchestrate X Square open-weight VLA stack with local MCP fleet (worldlabs-mcp, robotics-mcp, avatarops) for event-grounded synthetic training.
+
+## MCP tools
+
+### vla_status
+Read-only snapshot of Wall-OSS, WALL-WM, DMuon upstream paths and dataset episode count.
+
+### vla_wall
+Operations: health, infer_prepare, finetune_prepare, list_tasks.
+Wall-OSS-0.5 uses flow-matching action supervision for zero-shot manipulation.
+
+### vla_world_model
+Operations: health, train_prepare, predict_prepare, event_vocab.
+WALL-WM couples Wan text-to-video prior with action DiT; segments: approaching, contact, lift, slide, recovery.
+
+### vla_dataset
+Operations: ingest_episode, list_episodes (paginated), export_shard, validate_multiview.
+Stores JSON episodes under VLA_DATASET_ROOT.
+
+### vla_training
+Operations: health, co_train_prepare, config_template.
+DMuon distributed Muon optimizer for gradient-bridged co-training.
+
+### vla_fleet
+Operations: bridge_status, scenario_brief, list_peers.
+Default peers: worldlabs :10865, robotics :10892, avatar :10793.
+
+### vla_agentic_workflow
+SEP-1577 multi-step planning with optional ctx.sample.
+
+## Environment
+
+VLA_WALL_X_ROOT, VLA_WALL_WM_ROOT, VLA_DMUON_ROOT, VLA_CHECKPOINT, VLA_DATASET_ROOT, VLA_DEVICE, VLA_*_MCP_URL
+
+## Run
+
+uv sync --extra dev
+uv run pytest tests -q
+uv run uvicorn vla_mcp.server:app --port 11024

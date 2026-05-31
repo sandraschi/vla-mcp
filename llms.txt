@@ -1,0 +1,8 @@
+# vla-mcp
+
+Vision-Language-Action MCP server: Wall-OSS-0.5, WALL-WM, DMuon, fleet loops.
+
+- Docs: docs/PRD.md, docs/ARCHITECTURE.md, docs/SETUP.md
+- Tools: vla_wall, vla_world_model, vla_dataset, vla_training, vla_fleet, vla_status
+- Upstream: https://github.com/X-Square-Robot/wall-x
+- Ports: backend 11024, frontend 11025
