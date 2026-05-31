@@ -2,7 +2,7 @@ set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 
 export NAME := "VLA-MCP"
 export DESC := "Vision-Language-Action bridge: Wall-OSS-0.5, WALL-WM, DMuon"
-export VER := "0.2.1"
+export VER := "0.3.0"
 export PORT := "11024"
 export HOST := "127.0.0.1"
 

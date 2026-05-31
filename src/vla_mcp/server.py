@@ -21,6 +21,7 @@ from .engine.dmuon_runner import DMuonRunner
 from .engine.event_segmenter import EventSegmenter
 from .engine.fleet_bridge import FleetBridge
 from .engine.hf_weights import HFWeightManager
+from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
@@ -127,7 +128,7 @@ def build_mcp() -> FastMCP:
             "dataset_root": cfg.dataset_root,
             "dataset_episodes": ep.get("total", 0),
             "device": cfg.device,
-            "phase": "0.2.1",
+            "phase": "0.3.0",
             "message": "VLA stack status.",
         }
 
@@ -324,14 +325,17 @@ def build_mcp() -> FastMCP:
             "health",
             "co_train_prepare",
             "config_template",
+            "introspect_train_args",
             "launch_co_train",
             "job_status",
+            "job_log",
             "stop_job",
         ],
         dataset_shard: str | None = None,
         confirm: bool = False,
         dry_run: bool = False,
         job_id: str | None = None,
+        log_offset: int = 0,
         extra_args: list[str] | None = None,
     ) -> dict[str, Any]:
         """VLA_TRAINING - DMuon co-training launch and job tracking.
@@ -354,6 +358,8 @@ def build_mcp() -> FastMCP:
             return runner.co_train_prepare(dataset_shard=dataset_shard)
         if operation == "config_template":
             return runner.config_template()
+        if operation == "introspect_train_args":
+            return runner.introspect_train_args()
         if operation == "launch_co_train":
             return await runner.launch_co_train(
                 confirm=confirm,
@@ -363,10 +369,39 @@ def build_mcp() -> FastMCP:
             )
         if operation == "job_status":
             return runner.job_status(job_id=job_id)
+        if operation == "job_log":
+            if not job_id:
+                return {"success": False, "error": "job_id required for job_log"}
+            return runner.job_log(job_id, offset=log_offset)
         if operation == "stop_job":
             if not job_id:
                 return {"success": False, "error": "job_id required for stop_job"}
             return runner.stop_job(job_id)
+        return {"success": False, "error": f"Unknown operation: {operation}"}
+
+    @mcp.tool()
+    async def vla_pipeline(
+        operation: Literal["describe", "run", "last_run"],
+        live: bool = False,
+        shard_name: str | None = None,
+        include_failures: bool = True,
+        room_style: str = "cluttered_indoor",
+        fallback_simulate: bool = True,
+    ) -> dict[str, Any]:
+        """VLA_PIPELINE - End-to-end loop: fleet → ingest → numpy export → DMuon dry_run."""
+        pipe = PipelineRunner.default()
+        if operation == "describe":
+            return pipe.describe()
+        if operation == "last_run":
+            return pipe.last_run()
+        if operation == "run":
+            return await pipe.run(
+                live=live,
+                shard_name=shard_name,
+                include_failures=include_failures,
+                room_style=room_style,
+                fallback_simulate=fallback_simulate,
+            )
         return {"success": False, "error": f"Unknown operation: {operation}"}
 
     @mcp.tool(annotations=_READ_ONLY)
@@ -410,6 +445,7 @@ def build_mcp() -> FastMCP:
             "vla_fleet(operation='call_peer', peer='yahboom', tool_name='...')",
             "vla_dataset(operation='segment_telemetry', ...)",
             "vla_dataset(operation='export_numpy_shard', shard_name='train_001')",
+            "vla_pipeline(operation='run', live=False)",
             "vla_training(operation='launch_co_train', confirm=True)",
         ]
         sample_ok = hasattr(ctx, "sample")
@@ -443,6 +479,7 @@ def build_mcp() -> FastMCP:
             "vla_weights": vla_weights,
             "vla_wall": vla_wall,
             "vla_xvla": vla_xvla,
+            "vla_pipeline": vla_pipeline,
             "vla_world_model": vla_world_model,
             "vla_dataset": vla_dataset,
             "vla_events": vla_events,

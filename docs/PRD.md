@@ -1,6 +1,6 @@
 # Product Requirements Document - vla-mcp
 
-**Version:** 0.2.1  
+**Version:** 0.3.0  
 **Last updated:** 2026-05-31  
 **Upstream:** https://github.com/X-Square-Robot/wall-x  
 **Fleet standard:** mcp-central-docs SOTA 3.2
@@ -47,7 +47,7 @@ Wall-OSS-0.5 (edge infer) + WALL-WM (sim rollouts)
 | REQ-10 | X-VLA 0.9B PEFT path for edge secondary agents | Done (`vla_xvla`, `vla_wall edge_prepare`) |
 | REQ-11 | HF weight download helper | Done |
 | REQ-12 | Event telemetry segmenter | Done |
-| REQ-13 | SOTA webapp + multifile README | Done |
+| REQ-14 | E2E pipeline (fleet → ingest → export → DMuon dry_run) | Done (`vla_pipeline`) |
 
 ## Non-goals (v0.1)
 

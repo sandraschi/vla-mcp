@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from collections.abc import Awaitable, Callable
@@ -10,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastmcp import FastMCP
 
 from .config import get_config
@@ -18,6 +19,7 @@ from .engine.dataset_store import DatasetStore
 from .engine.dmuon_runner import DMuonRunner
 from .engine.fleet_bridge import FleetBridge
 from .engine.hf_weights import HFWeightManager
+from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
@@ -108,6 +110,60 @@ def setup_webapp(
     async def api_jobs() -> dict:
         return DMuonRunner.default().job_status()
 
+    @app.get("/api/v1/training/jobs/{job_id}/log")
+    async def api_job_log(job_id: str, offset: int = 0) -> dict:
+        return DMuonRunner.default().job_log(job_id, offset=offset)
+
+    @app.get("/api/v1/training/jobs/{job_id}/log/stream")
+    async def api_job_log_stream(job_id: str) -> StreamingResponse:
+        runner = DMuonRunner.default()
+
+        async def event_stream():
+            offset = 0
+            while True:
+                chunk = runner.job_log(job_id, offset=offset)
+                if not chunk.get("success"):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                    break
+                payload = {
+                    "offset": chunk.get("offset"),
+                    "next_offset": chunk.get("next_offset"),
+                    "text": chunk.get("text", ""),
+                    "eof": chunk.get("eof"),
+                }
+                yield f"data: {json.dumps(payload)}\n\n"
+                offset = int(chunk.get("next_offset") or offset)
+                job = runner.job_status(job_id=job_id).get("job") or {}
+                if chunk.get("eof") and job.get("status") != "running":
+                    break
+                await asyncio.sleep(1.0)
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    @app.get("/api/v1/pipeline/last")
+    async def api_pipeline_last() -> dict:
+        return PipelineRunner.default().last_run()
+
+    @app.post("/api/v1/pipeline/run")
+    async def api_pipeline_run(request: Request) -> Any:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        allowed, reason = rest_control_allowed(
+            "vla_pipeline",
+            {"operation": "run", **body},
+            confirm_header=request.headers.get("X-VLA-Confirm"),
+        )
+        if not allowed:
+            raise HTTPException(status_code=403, detail=reason or "REST control denied")
+        fn = all_tools.get("vla_pipeline")
+        if fn is None:
+            raise HTTPException(status_code=404, detail="vla_pipeline not registered")
+        return await fn(operation="run", **{k: v for k, v in body.items() if k != "operation"})
+
     @app.get("/api/v1/help")
     async def api_help_index() -> dict:
         docs = _repo_root() / "docs"
@@ -160,6 +216,9 @@ def setup_webapp(
                 "event_joints": True,
                 "dataset_store": True,
                 "fleet_bridge": True,
+                "e2e_pipeline": True,
+                "job_persistence": True,
+                "log_streaming": True,
                 "prefab": cfg.prefab_apps,
                 "sampling": True,
                 "agentic_workflows": True,
@@ -168,7 +227,7 @@ def setup_webapp(
                 "skills": True,
             },
             "inventory": {
-                "workflow_tools": ["vla_agentic_workflow"],
+                "workflow_tools": ["vla_agentic_workflow", "vla_pipeline"],
                 "prompt_names": ["vla_co_train_session", "vla_zero_shot_deploy"],
                 "resource_uris": ["resource://vla/quickstart"],
                 "skill_uris": ["skill://vla-expert/SKILL.md"],

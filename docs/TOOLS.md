@@ -50,14 +50,28 @@ Telemetry sample fields: `timestamp`, `velocity`, `contact_force`, `gripper_open
 
 `segment` (telemetry samples), `vocab` (event joint list).
 
+## vla_pipeline
+
+End-to-end closed loop (provenance in `VLA_DATASET_ROOT/logs/pipeline/`):
+
+| Operation | Description |
+|-----------|-------------|
+| `describe` | Pipeline steps and live peer tool map |
+| `run` | Full loop (`live=False` CI-safe; `live=True` probes fleet) |
+| `last_run` | Latest provenance JSON |
+
+REST: `POST /api/v1/pipeline/run` (requires `X-VLA-Confirm: 1`).
+
 ## vla_training
 
 | Operation | Description |
 |-----------|-------------|
 | `co_train_prepare` | Validate upstream + shard |
 | `config_template` | YAML skeleton |
+| `introspect_train_args` | Parse upstream train script `--help` |
 | `launch_co_train` | Subprocess (`confirm=True` to run, `dry_run=True` to preview) |
 | `job_status` | List or get job by `job_id` |
+| `job_log` | Tail job log (`job_id`, `log_offset`) |
 | `stop_job` | Kill Windows job by `job_id` |
 
 ## vla_fleet
@@ -81,6 +95,7 @@ Prefab in-chat card (when `VLA_PREFAB_APPS=1`).
 
 ```python
 await vla_dataset(operation="segment_telemetry", source="raspbot_sim", telemetry=[...])
+await vla_pipeline(operation="run", live=False, include_failures=True)
 await vla_training(operation="launch_co_train", dry_run=True, dataset_shard="train_001")
 await vla_xvla(operation="edge_prepare", target="raspbot")
 await vla_fleet(operation="call_peer", peer="yahboom", tool_name="robotics_system", arguments={"operation": "status"})

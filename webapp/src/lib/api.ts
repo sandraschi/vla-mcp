@@ -6,10 +6,18 @@ export async function apiGet<T = Record<string, unknown>>(path: string): Promise
   return res.json() as Promise<T>;
 }
 
-export async function apiPost<T = Record<string, unknown>>(path: string, body?: unknown): Promise<T> {
+export async function apiPost<T = Record<string, unknown>>(
+  path: string,
+  body?: unknown,
+  options?: { confirm?: boolean },
+): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (options?.confirm) {
+    headers["X-VLA-Confirm"] = "1";
+  }
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);

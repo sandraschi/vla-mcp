@@ -19,7 +19,7 @@ from vla_mcp.server import app, mcp
 
 
 def test_package_version():
-    assert __version__ == "0.2.1"
+    assert __version__ == "0.3.0"
 
 
 def test_event_segmenter():
@@ -142,6 +142,7 @@ async def test_mcp_tools_registered():
         "vla_events",
         "vla_training",
         "vla_fleet",
+        "vla_pipeline",
         "vla_agentic_workflow",
     ):
         assert expected in names, f"Missing tool: {expected}"
@@ -226,7 +227,7 @@ async def test_api_tools_list():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/api/v1/tools")
         assert resp.status_code == 200
-        assert resp.json()["count"] >= 10
+        assert resp.json()["count"] >= 11
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "vla-mcp",
-  "version": "0.2.1",
-  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, HF weights, event-joint dataset loop",
+  "version": "0.3.0",
+  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, E2E pipeline",
   "author": {
     "name": "Sandra Schipal",
     "email": "sandra@sandraschi.dev"
@@ -34,6 +34,7 @@
     { "name": "vla_events", "description": "Telemetry event segmentation" },
     { "name": "vla_training", "description": "DMuon co-train launch" },
     { "name": "vla_fleet", "description": "Fleet peer bridge" },
+    { "name": "vla_pipeline", "description": "E2E fleet → ingest → export → DMuon dry_run" },
     { "name": "vla_agentic_workflow", "description": "Multi-step VLA planning" }
   ]
 }

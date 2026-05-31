@@ -57,6 +57,10 @@ export default function Dashboard() {
       </div>
 
       <p className="text-sm text-gray-500">
+        <Link to="/pipeline" className="text-violet-400 hover:text-violet-300">
+          E2E pipeline
+        </Link>
+        {" · "}
         <Link to="/fleet" className="text-violet-400 hover:text-violet-300">
           Fleet loop
         </Link>

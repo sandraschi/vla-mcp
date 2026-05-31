@@ -6,6 +6,7 @@ import {
   Boxes,
   Brain,
   Download,
+  GitBranch,
   LayoutDashboard,
   Network,
   Wrench,
@@ -14,6 +15,7 @@ import {
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/dataset", label: "Dataset", icon: Boxes },
+  { to: "/pipeline", label: "Pipeline", icon: GitBranch },
   { to: "/training", label: "Training", icon: Brain },
   { to: "/weights", label: "Weights", icon: Download },
   { to: "/fleet", label: "Fleet", icon: Network },

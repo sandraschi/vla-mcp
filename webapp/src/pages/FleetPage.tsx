@@ -15,7 +15,7 @@ export default function FleetPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Fleet</h1>
-      <p className="text-gray-400 text-sm mb-6">worldlabs-mcp · robotics-mcp · avatarops simulation boundary</p>
+      <p className="text-gray-400 text-sm mb-6">worldlabs-mcp · yahboom-mcp · avatarops simulation boundary</p>
       <div className="grid gap-3 md:grid-cols-3">
         {peers.map((p) => (
           <div key={p.name} className="bg-gray-900 border border-gray-800 rounded-lg p-4">

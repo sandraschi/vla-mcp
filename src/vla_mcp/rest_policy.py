@@ -16,6 +16,7 @@ REST_MUTATING: dict[str, frozenset[str]] = {
         {"ingest_episode", "segment_telemetry", "export_shard", "export_numpy_shard"}
     ),
     "vla_xvla": frozenset({"peft_prepare"}),
+    "vla_pipeline": frozenset({"run"}),
 }
 
 
