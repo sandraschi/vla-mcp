@@ -1,4 +1,4 @@
-set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+﻿set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 
 export NAME := "VLA-MCP"
 export DESC := "Vision-Language-Action bridge: Wall-OSS-0.5, WALL-WM, DMuon"
@@ -7,7 +7,7 @@ export PORT := "11024"
 export HOST := "127.0.0.1"
 
 default:
-    @powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../mcp-central-docs/scripts/just-dashboard.ps1 -Path .
+    @just --list
 
 bootstrap:
     uv sync --extra dev
@@ -39,3 +39,4 @@ health:
 
 demo:
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\webapp\start.ps1' -Demo
+
