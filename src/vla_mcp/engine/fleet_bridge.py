@@ -13,6 +13,7 @@ from ..config import VLAConfig, get_config
 
 DEFAULT_PEERS = {
     "worldlabs-mcp": "http://127.0.0.1:10865",
+    "robotics-mcp": "http://127.0.0.1:10706",
     "yahboom-mcp": "http://127.0.0.1:10892",
     "avatarops": "http://127.0.0.1:10793",
 }
@@ -31,6 +32,7 @@ class FleetBridge:
     def peer_urls(self) -> dict[str, str | None]:
         return {
             "worldlabs-mcp": self.config.worldlabs_mcp_url or DEFAULT_PEERS["worldlabs-mcp"],
+            "robotics-mcp": self.config.robotics_mcp_url or DEFAULT_PEERS["robotics-mcp"],
             "yahboom-mcp": self.config.yahboom_mcp_url or DEFAULT_PEERS["yahboom-mcp"],
             "avatarops": self.config.avatar_mcp_url or DEFAULT_PEERS["avatarops"],
         }
@@ -93,8 +95,8 @@ class FleetBridge:
         alias = {
             "worldlabs": "worldlabs-mcp",
             "yahboom": "yahboom-mcp",
-            "robotics": "yahboom-mcp",
-            "robotics-mcp": "yahboom-mcp",
+            "robotics": "robotics-mcp",
+            "robotics-mcp": "robotics-mcp",
             "avatar": "avatarops",
             "avatar-mcp": "avatarops",
             "avatarops": "avatarops",

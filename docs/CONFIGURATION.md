@@ -24,8 +24,11 @@
 | `VLA_WORLDLABS_GEN_TOOL` | `generate_world_from_text` | worldlabs-mcp tool name used by `vla_world generate` |
 | `VLA_WORLDLABS_GEN_ARG` | `prompt` | prompt argument name for that tool |
 | `VLA_YAHBOOM_MCP_URL` | `http://127.0.0.1:10892` | yahboom-mcp HTTP (Raspbot bridge) |
-| `VLA_ROBOTICS_MCP_URL` | alias → yahboom | Legacy env name |
+| `VLA_ROBOTICS_MCP_URL` | `http://127.0.0.1:10706` | robotics-mcp HTTP (fleet dashboard) |
 | `VLA_AVATAR_MCP_URL` | `http://127.0.0.1:10793` | avatarops HTTP |
+| `VLA_AIWATCHER_BASE_URL` | — | aiwatcher ingest target (`http://127.0.0.1:10946`) |
+| `VLA_AIWATCHER_PUSH_ENABLED` | `1` | Push pipeline completions to fleet ingest |
+| `VLA_AIWATCHER_API_KEY` | — | Same as `AIWATCHER_API_KEY` when aiwatcher auth is on |
 | `VLA_MCP_BRIDGE_URLS` | auto from peers | Comma MCP HTTP URLs for proxy |
 | `VLA_MOUNT_FLEET_PROXIES` | `0` | Mount fleet MCP proxies (HTTP mode only) |
 | `VLA_PREFAB_APPS` | `1` | Register Prefab cards |
@@ -51,3 +54,7 @@
 For gated models: `huggingface-cli login` before `vla_weights download`.
 
 Override repo ids if X Square publishes under different names on HF.
+
+## Fleet integration
+
+See `docs/FLEET_INTEGRATION.md`. MCP: `vla_help(topic="fleet_integration")` or `vla_help(topic="api_keys")`.

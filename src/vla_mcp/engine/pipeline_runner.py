@@ -460,4 +460,11 @@ class PipelineRunner:
         provenance_path = self._write_provenance(run_id, payload)
         payload["provenance_path"] = provenance_path
         self._last_run = payload
+        if payload.get("success"):
+            try:
+                from ..integrations.aiwatcher import push_pipeline_complete
+
+                await push_pipeline_complete(payload, config=self.config)
+            except Exception:
+                pass
         return payload

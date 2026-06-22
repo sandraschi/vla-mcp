@@ -1,4 +1,5 @@
-﻿set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+import 'scripts/just/fleet.just'
 
 export NAME := "VLA-MCP"
 export DESC := "Vision-Language-Action bridge: Wall-OSS-0.5, WALL-WM, DMuon"
@@ -39,4 +40,3 @@ health:
 
 demo:
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\webapp\start.ps1' -Demo
-

@@ -1,0 +1,55 @@
+{
+  "manifest_version": "0.2",
+  "name": "vla-mcp",
+  "version": "0.3.1b1",
+  "description": "FastMCP 3.2 bridge for Vision-Language-Action: Wall-OSS-0.5, WALL-WM, DMuon co-training, and fleet simulation loops",
+  "author": { "name": "Sandra Schipal" },
+  "server": {
+    "type": "python",
+    "entry_point": "src/vla_mcp/__main__.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run","--directory","${PWD}","python","-m","vla_mcp"],
+      "env": {
+        "PYTHONPATH": "${PWD}/src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "tools": [
+    { "name": "vla_status", "description": "vla_status" },
+    { "name": "vla_weights", "description": "vla_weights" },
+    { "name": "vla_wall", "description": "vla_wall" },
+    { "name": "vla_xvla", "description": "vla_xvla" },
+    { "name": "vla_world_model", "description": "vla_world_model" },
+    { "name": "vla_dataset", "description": "vla_dataset" },
+    { "name": "vla_events", "description": "vla_events" },
+    { "name": "vla_training", "description": "vla_training" },
+    { "name": "vla_pipeline", "description": "vla_pipeline" },
+    { "name": "vla_fleet", "description": "vla_fleet" },
+    { "name": "vla_world", "description": "vla_world" },
+    { "name": "vla_agentic_workflow", "description": "vla_agentic_workflow" },
+    { "name": "vla_help", "description": "vla_help" },
+    { "name": "_mount_fleet_proxies_list_models", "description": "_mount_fleet_proxies(list_models)" },
+    { "name": "_mount_fleet_proxies_local_status", "description": "_mount_fleet_proxies(local_status)" },
+    { "name": "_mount_fleet_proxies_download", "description": "_mount_fleet_proxies(download)" },
+    { "name": "api_health", "description": "api_health" },
+    { "name": "api_pipeline_liveness", "description": "api_pipeline_liveness" },
+    { "name": "api_status", "description": "api_status" },
+    { "name": "api_tools", "description": "api_tools" },
+    { "name": "api_control", "description": "api_control" },
+    { "name": "api_fleet", "description": "api_fleet" },
+    { "name": "api_episodes", "description": "api_episodes" },
+    { "name": "api_jobs", "description": "api_jobs" },
+    { "name": "api_job_log", "description": "api_job_log" },
+    { "name": "api_job_log_stream", "description": "api_job_log_stream" },
+    { "name": "api_pipeline_last", "description": "api_pipeline_last" },
+    { "name": "api_pipeline_run", "description": "api_pipeline_run" },
+    { "name": "api_help_index", "description": "api_help_index" },
+    { "name": "api_help_slug", "description": "api_help_slug" },
+    { "name": "api_capabilities", "description": "api_capabilities" },
+    { "name": "well_known_manifest", "description": "well_known_manifest" },
+    { "name": "show_vla_status_card", "description": "show_vla_status_card" },
+    { "name": "show_pipeline_run_card", "description": "show_pipeline_run_card" }
+  ]
+}

@@ -1,6 +1,10 @@
-# vla-mcp
+# vla-mcp ⚠️ Alpha — Preemptive Infrastructure
+
+**Status: Alpha / Shelfware.** This server was scaffolded as infrastructure for a future robotics training pipeline. It has never been used in production. No robots have been trained with it. It exists so that when someone collects teleoperation demos and runs DMuon training, the bridge is ready. Until then it's preemptive — not broken, just waiting.
 
 MCP bridge for **Vision-Language-Action** — orchestrates X Square [wall-x](https://github.com/X-Square-Robot/wall-x) (Wall-OSS-0.5, WALL-WM, DMuon) with your fleet: **worldlabs-mcp**, **robotics-mcp**, **avatarops**. Event-joint data pipelines instead of ROS bag spaghetti.
+
+**Why VLA though?** VLA (Vision-Language-Action) models take camera images + text commands and output robot motor commands. Think "pick up the red cube" → joint angle trajectory. This server bridges telemetry collection (multiview video, sim state) to co-training jobs (DMuon on wall-x weights). It's not a Tapo cam script — it's a training pipeline for behavioral cloning from demonstration.
 
 ## How it runs
 
@@ -29,6 +33,12 @@ MCP bridge for **Vision-Language-Action** — orchestrates X Square [wall-x](htt
 - Fleet peer probe + REST `call_peer` bridge
 - MCP proxy federation to worldlabs / robotics / avatar
 - FastMCP 3.2: skills, prompts, Prefab status card
+
+<p align="center">
+  <a href="https://github.com/sandraschi/vla-mcp"><img src="https://img.shields.io/badge/Status-Alpha/orange?style=flat-square" alt="Alpha"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.2-7c5cfc?style=flat-square" alt="FastMCP"></a>
+</p>
 
 ## Quick install
 
@@ -65,7 +75,9 @@ Full paths: [INSTALL.md](INSTALL.md)
 
 - Windows 10/11 (primary), Python 3.12+, [uv](https://docs.astral.sh/uv/)
 - Optional: CUDA GPU, clone of wall-x, Hugging Face token for gated weights
-- Fleet peers optional: worldlabs-mcp, robotics-mcp, avatarops
+- Fleet peers optional: worldlabs-mcp, robotics-mcp, yahboom-mcp, avatarops
+- aiwatcher fleet ingest on pipeline complete (`docs/FLEET_INTEGRATION.md`)
+- MCP help: `vla_help(topic="fleet_integration")` | webapp Help tab
 
 ## License
 
