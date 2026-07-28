@@ -5,7 +5,7 @@ description = "FastMCP 3.2 bridge for Vision-Language-Action: Wall-OSS-0.5, WALL
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
-authors = [{ name = "Sandra Schipal", email = "sandra@sandraschi.dev" }]
+authors = [{ name = "Sandra Schipal", email = "sandraschipal@gmail.com" }]
 keywords = [
     "mcp",
     "vla",
@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
-    "fastmcp>=3.2,<4",
+    "fastmcp>=3.4.4,<4",
     "fastapi>=0.115.0",
     "httpx>=0.28.0",
     "huggingface-hub>=0.29.0",
@@ -40,7 +40,7 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
-    "ruff>=0.9",
+    "ruff>=0.16.0,<0.17",
     "pre-commit>=4.0",
 ]
 
@@ -65,7 +65,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008"]
+ignore = ["S101", "B008", "S106", "S110", "S112", "RUF012"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/vla_mcp/engine/dmuon_runner.py" = ["S603", "S607"]
