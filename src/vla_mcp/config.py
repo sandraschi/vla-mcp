@@ -93,12 +93,8 @@ class VLAConfig:
             prefab_apps=os.getenv("VLA_PREFAB_APPS", "1") == "1",
             pipeline_boomy_demo=(os.getenv("VLA_PIPELINE_BOOMY_DEMO") or "").strip().lower() or None,
             pipeline_generate_world=_flag("VLA_PIPELINE_GENERATE_WORLD", False),
-            aiwatcher_base_url=os.getenv("VLA_AIWATCHER_BASE_URL")
-            or os.getenv("AIWATCHER_MCP_URL")
-            or None,
-            aiwatcher_api_key=os.getenv("VLA_AIWATCHER_API_KEY")
-            or os.getenv("AIWATCHER_API_KEY")
-            or None,
+            aiwatcher_base_url=os.getenv("VLA_AIWATCHER_BASE_URL") or os.getenv("AIWATCHER_MCP_URL") or None,
+            aiwatcher_api_key=os.getenv("VLA_AIWATCHER_API_KEY") or os.getenv("AIWATCHER_API_KEY") or None,
             aiwatcher_push_enabled=_flag("VLA_AIWATCHER_PUSH_ENABLED", True),
         )
 

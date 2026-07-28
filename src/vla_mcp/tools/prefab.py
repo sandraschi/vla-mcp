@@ -7,6 +7,7 @@ from typing import Any
 
 from prefab_ui.app import PrefabApp
 from prefab_ui.components import (
+    H3,
     Card,
     CardContent,
     CardDescription,
@@ -14,7 +15,6 @@ from prefab_ui.components import (
     CardTitle,
     Code,
     Grid,
-    H3,
     Mermaid,
     Metric,
     Text,

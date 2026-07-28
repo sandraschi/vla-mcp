@@ -16,9 +16,7 @@ def test_yahboom_tool_body():
 
 def test_yahboom_demo_routes_talkbot():
     bridge = FleetBridge.default()
-    routes = bridge._yahboom_demo_routes(
-        {"operation": "talkbot", "max_turns": 2, "scripted_user_lines": ["Hi"]}
-    )
+    routes = bridge._yahboom_demo_routes({"operation": "talkbot", "max_turns": 2, "scripted_user_lines": ["Hi"]})
     assert routes[0] == (
         "POST",
         "/api/v1/demo/talkbot",

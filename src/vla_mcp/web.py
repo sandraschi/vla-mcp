@@ -15,7 +15,6 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from fastmcp import FastMCP
 
 from .config import get_config
-from .pipeline_liveness import check_pipeline_liveness
 from .engine.dataset_store import DatasetStore
 from .engine.dmuon_runner import DMuonRunner
 from .engine.fleet_bridge import FleetBridge
@@ -24,6 +23,7 @@ from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
+from .pipeline_liveness import check_pipeline_liveness
 from .rest_policy import rest_control_allowed
 
 _START = time.time()

@@ -12,9 +12,7 @@ REST_MUTATING: dict[str, frozenset[str]] = {
     "vla_weights": frozenset({"download"}),
     "vla_training": frozenset({"launch_co_train", "stop_job"}),
     "vla_fleet": frozenset({"call_peer"}),
-    "vla_dataset": frozenset(
-        {"ingest_episode", "segment_telemetry", "export_shard", "export_numpy_shard"}
-    ),
+    "vla_dataset": frozenset({"ingest_episode", "segment_telemetry", "export_shard", "export_numpy_shard"}),
     "vla_xvla": frozenset({"peft_prepare"}),
     "vla_world": frozenset({"generate"}),
     "vla_pipeline": frozenset({"run"}),

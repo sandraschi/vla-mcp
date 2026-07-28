@@ -129,8 +129,7 @@ class DatasetStore:
             "missing": missing,
             "calibration_required": False,
             "message": (
-                "WALL-WM cross-view attention expects aligned streams; "
-                "calibration-free fusion is upstream-side."
+                "WALL-WM cross-view attention expects aligned streams; calibration-free fusion is upstream-side."
             ),
         }
 

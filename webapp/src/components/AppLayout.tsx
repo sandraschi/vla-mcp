@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useZoom } from "../lib/useZoom";
 import {
   Activity,
   BookOpen,
@@ -25,7 +26,8 @@ const navItems = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
+	useZoom();
+	const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen">

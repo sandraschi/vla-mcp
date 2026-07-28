@@ -53,9 +53,7 @@ class FleetBridge:
 
     async def bridge_status(self) -> dict:
         peers = self.peer_urls()
-        results = await asyncio.gather(
-            *[self.probe_peer(name, url) for name, url in peers.items()]
-        )
+        results = await asyncio.gather(*[self.probe_peer(name, url) for name, url in peers.items()])
         return {
             "success": True,
             "peers": list(results),
@@ -115,18 +113,10 @@ class FleetBridge:
         """Return (method, path, json_body) candidates for yahboom_demo operations."""
         op = str(args.get("operation", "describe")).strip().lower()
         if op == "draw":
-            body = {
-                k: args[k]
-                for k in ("pattern", "speed", "skip_color_swap_pause")
-                if k in args
-            }
+            body = {k: args[k] for k in ("pattern", "speed", "skip_color_swap_pause") if k in args}
             return [("POST", "/api/v1/demo/draw", body)]
         if op == "talkbot":
-            body = {
-                k: args[k]
-                for k in ("approach", "max_turns", "use_speech_mcp", "scripted_user_lines")
-                if k in args
-            }
+            body = {k: args[k] for k in ("approach", "max_turns", "use_speech_mcp", "scripted_user_lines") if k in args}
             return [("POST", "/api/v1/demo/talkbot", body)]
         if op == "draw_status":
             return [("GET", "/api/v1/demo/draw/status", None)]
@@ -182,17 +172,11 @@ class FleetBridge:
         """Start a Boomy show-floor demo (draw or talkbot) via yahboom-mcp REST."""
         demo = demo.strip().lower()
         if demo == "draw":
-            body = {
-                k: kwargs[k]
-                for k in ("pattern", "speed", "skip_color_swap_pause")
-                if k in kwargs
-            }
+            body = {k: kwargs[k] for k in ("pattern", "speed", "skip_color_swap_pause") if k in kwargs}
             return await self.yahboom_post("/api/v1/demo/draw", body)
         if demo == "talkbot":
             body = {
-                k: kwargs[k]
-                for k in ("approach", "max_turns", "use_speech_mcp", "scripted_user_lines")
-                if k in kwargs
+                k: kwargs[k] for k in ("approach", "max_turns", "use_speech_mcp", "scripted_user_lines") if k in kwargs
             }
             return await self.yahboom_post("/api/v1/demo/talkbot", body)
         return {"success": False, "error": f"Unknown Boomy demo: {demo}"}
@@ -246,9 +230,7 @@ class FleetBridge:
 
         if name == "yahboom-mcp":
             if tool_name == "yahboom_tool":
-                endpoints.append(
-                    ("POST", "/api/v1/control/tool", self._yahboom_tool_body(args))
-                )
+                endpoints.append(("POST", "/api/v1/control/tool", self._yahboom_tool_body(args)))
             elif tool_name == "yahboom_demo":
                 endpoints.extend(self._yahboom_demo_routes(args))
 

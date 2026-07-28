@@ -76,10 +76,7 @@ async def check_pipeline_liveness(
                 {
                     "severity": "warning",
                     "code": "VLA_PIPELINE_STALE",
-                    "message": (
-                        f"Last VLA pipeline run is {age_h}h old "
-                        f"(threshold {stale_hours}h)"
-                    ),
+                    "message": (f"Last VLA pipeline run is {age_h}h old (threshold {stale_hours}h)"),
                     "detail": {"run_id": run_id, "age_hours": age_h},
                 }
             )

@@ -345,9 +345,7 @@ class PipelineRunner:
         mode = "simulated"
         peer_data: dict[str, Any] = {}
         resolved_demo = self._resolve_boomy_demo(boomy_demo) if live else None
-        do_generate = (
-            self.config.pipeline_generate_world if generate_world is None else generate_world
-        )
+        do_generate = self.config.pipeline_generate_world if generate_world is None else generate_world
 
         if live:
             steps, peer_data = await self._live_fleet_steps(
@@ -442,9 +440,7 @@ class PipelineRunner:
             "arrays_written": export.get("arrays_written"),
             "event_chain": ingest.get("events", []),
             "segments": ingest.get("segments", []),
-            "event_duration": max(
-                (float(r.get("timestamp", i)) for i, r in enumerate(telemetry)), default=0.0
-            ),
+            "event_duration": max((float(r.get("timestamp", i)) for i, r in enumerate(telemetry)), default=0.0),
             "dmuon_command": dry.get("command"),
             "steps": steps,
             "finished_at": datetime.now(UTC).isoformat(),
