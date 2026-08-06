@@ -19,6 +19,7 @@ from .engine.dataset_store import DatasetStore
 from .engine.dmuon_runner import DMuonRunner
 from .engine.fleet_bridge import FleetBridge
 from .engine.hf_weights import HFWeightManager
+from .engine.notebook_store import NOTEBOOKS, NotebookStore
 from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
@@ -172,6 +173,59 @@ def setup_webapp(
         if fn is None:
             raise HTTPException(status_code=404, detail="vla_pipeline not registered")
         return await fn(operation="run", **{k: v for k, v in body.items() if k != "operation"})
+
+    @app.get("/api/v1/notebooks")
+    async def api_notebooks() -> JSONResponse:
+        return JSONResponse({"success": True, "notebooks": NotebookStore.default().summaries()})
+
+    @app.get("/api/v1/notebooks/{name}/entries")
+    async def api_notebook_entries(
+        name: str,
+        limit: int = 50,
+        offset: int = 0,
+        category: str | None = None,
+    ) -> JSONResponse:
+        if name not in NOTEBOOKS:
+            raise HTTPException(status_code=404, detail=f"Notebook must be one of {NOTEBOOKS}")
+        return JSONResponse(NotebookStore.default().list_entries(name, limit=limit, offset=offset, category=category))
+
+    @app.post("/api/v1/notebooks/{name}/entries")
+    async def api_notebook_add(name: str, request: Request) -> Any:
+        if name not in NOTEBOOKS:
+            raise HTTPException(status_code=404, detail=f"Notebook must be one of {NOTEBOOKS}")
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        result = NotebookStore.default().add_entry(
+            name,
+            title=str(body.get("title") or ""),
+            body=str(body.get("body") or ""),
+            category=str(body.get("category") or "note"),
+            author=str(body.get("author") or "sandra"),
+            tags=body.get("tags") if isinstance(body.get("tags"), list) else None,
+            metrics=body.get("metrics") if isinstance(body.get("metrics"), dict) else None,
+        )
+        if not result.get("success"):
+            raise HTTPException(status_code=422, detail=result.get("error", "Invalid entry"))
+        return result
+
+    @app.delete("/api/v1/notebooks/{name}/entries/{entry_id}")
+    async def api_notebook_delete(name: str, entry_id: str) -> dict:
+        if name not in NOTEBOOKS:
+            raise HTTPException(status_code=404, detail=f"Notebook must be one of {NOTEBOOKS}")
+        deleted = NotebookStore.default().delete_entry(name, entry_id)
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Entry not found")
+        return {"success": True, "deleted": entry_id}
+
+    @app.post("/api/v1/notebooks/news/digest")
+    async def api_notebook_news_digest() -> Any:
+        from .tools.diary import _build_digest
+
+        return await _build_digest()
 
     @app.get("/api/v1/help")
     async def api_help_index() -> dict:

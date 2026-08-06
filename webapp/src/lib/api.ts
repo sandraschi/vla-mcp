@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 const API_BASE = import.meta.env.DEV ? "" : "http://127.0.0.1:11024";
 
 export async function apiGet<T = Record<string, unknown>>(path: string): Promise<T> {
@@ -20,6 +22,12 @@ export async function apiPost<T = Record<string, unknown>>(
     headers,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json() as Promise<T>;
+}
+
+export async function apiDelete<T = Record<string, unknown>>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json() as Promise<T>;
 }

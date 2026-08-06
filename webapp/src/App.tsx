@@ -9,6 +9,7 @@ import ToolsPage from "./pages/ToolsPage";
 import HelpPage from "./pages/HelpPage";
 import StatusPage from "./pages/StatusPage";
 import PipelinePage from "./pages/PipelinePage";
+import NotebooksPage from "./pages/NotebooksPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/help" element={<HelpPage />} />
         <Route path="/pipeline" element={<PipelinePage />} />
+        <Route path="/notebooks" element={<NotebooksPage />} />
         <Route path="/status" element={<StatusPage />} />
       </Routes>
     </AppLayout>

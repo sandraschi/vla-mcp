@@ -10,6 +10,7 @@ import {
   GitBranch,
   LayoutDashboard,
   Network,
+  NotebookPen,
   Wrench,
 } from "lucide-react";
 
@@ -19,6 +20,7 @@ const navItems = [
   { to: "/pipeline", label: "Pipeline", icon: GitBranch },
   { to: "/training", label: "Training", icon: Brain },
   { to: "/weights", label: "Weights", icon: Download },
+  { to: "/notebooks", label: "Notebooks", icon: NotebookPen },
   { to: "/fleet", label: "Fleet", icon: Network },
   { to: "/tools", label: "Tools", icon: Wrench },
   { to: "/help", label: "Help", icon: BookOpen },

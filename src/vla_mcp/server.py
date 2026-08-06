@@ -26,6 +26,7 @@ from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
 from .prompts_resources import register_prompts_and_resources
+from .tools.diary import register_diary_tool
 from .tools.prefab import register_prefab_tools
 from .web import setup_webapp
 
@@ -546,6 +547,7 @@ def build_mcp() -> FastMCP:
         }
     )
     register_prefab_tools(mcp, _ALL_TOOLS)
+    register_diary_tool(mcp, _ALL_TOOLS)
     return mcp
 
 
@@ -559,7 +561,7 @@ app.add_middleware(
         f"http://127.0.0.1:{_cfg.frontend_port}",
         f"http://localhost:{_cfg.frontend_port}",
     ],
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 setup_webapp(app, mcp, _ALL_TOOLS)

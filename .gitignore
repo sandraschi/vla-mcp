@@ -16,3 +16,7 @@ htmlcov/
 .coverage
 _dashboard/
 *.bak
+
+*.bak-*
+tsconfig.tsbuildinfo
+

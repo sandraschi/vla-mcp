@@ -40,3 +40,5 @@ health:
 
 demo:
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File '{{justfile_directory()}}\webapp\start.ps1' -Demo
+
+# Bootstrap: install dev deps + pre-commit hook

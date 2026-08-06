@@ -12,6 +12,58 @@ from ..config import VLAConfig, get_config
 log = logging.getLogger(__name__)
 
 
+async def fetch_fleet_items(
+    *,
+    hours: int = 24,
+    limit: int = 50,
+    config: VLAConfig | None = None,
+) -> dict[str, Any]:
+    """Pull recent fleet items from aiwatcher ``GET /api/items``.
+
+    Returns ``{"success": True, "items": [...], "count": n}`` or a structured
+    error with ``error_type`` (not_configured / upstream_unreachable).
+    """
+    cfg = config or get_config()
+    base = (cfg.aiwatcher_base_url or "").strip().rstrip("/")
+    if not base:
+        return {
+            "success": False,
+            "error": "aiwatcher not configured — set VLA_AIWATCHER_BASE_URL",
+            "error_type": "not_configured",
+            "recovery_options": [
+                "Set VLA_AIWATCHER_BASE_URL to the aiwatcher-mcp REST host",
+                "Start aiwatcher-mcp (port 10946) and retry",
+            ],
+        }
+    headers = {}
+    if cfg.aiwatcher_api_key:
+        headers["X-AIWatcher-Key"] = cfg.aiwatcher_api_key
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"{base}/api/items",
+                params={"hours": int(hours), "limit": int(limit)},
+                headers=headers,
+            )
+        if resp.status_code >= 400:
+            return {
+                "success": False,
+                "error": f"aiwatcher /api/items returned HTTP {resp.status_code}",
+                "error_type": "upstream_error",
+                "recovery_options": ["Check aiwatcher-mcp logs", "Retry when the feed poll finishes"],
+            }
+        body = resp.json()
+        items = body.get("items") or []
+        return {"success": True, "items": items, "count": len(items)}
+    except httpx.HTTPError as exc:
+        return {
+            "success": False,
+            "error": f"aiwatcher unreachable: {exc}",
+            "error_type": "upstream_unreachable",
+            "recovery_options": ["Start aiwatcher-mcp (10946) and retry"],
+        }
+
+
 async def push_fleet_event(
     *,
     title: str,

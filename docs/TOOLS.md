@@ -100,3 +100,28 @@ await vla_training(operation="launch_co_train", dry_run=True, dataset_shard="tra
 await vla_xvla(operation="edge_prepare", target="raspbot")
 await vla_fleet(operation="call_peer", peer="yahboom", tool_name="robotics_system", arguments={"operation": "status"})
 ```
+
+## vla_diary
+
+Three persistent notebooks: **personal** (manual), **dev** (agent-logged), **news**
+(aiwatcher digest). SQLite at `{VLA_DATASET_ROOT}/notebooks/notebooks.sqlite3`, max 500
+entries per notebook.
+
+| operation | notebook | category | Purpose |
+|-----------|----------|----------|---------|
+| `log` | dev (default) or personal | repo_fix / tool_install / blooper / note | Write an entry; `author` defaults to `agent:opencode` |
+| `list` | any | optional filter | Recent entries (limit/offset) |
+| `get` | any | - | One entry by `entry_id` |
+| `delete` | any | - | Remove entry - requires `confirm=True` |
+| `news` | news | digest | Pull 24h from aiwatcher `/api/items`, save abridged digest |
+| `status` | - | - | Entry counts per notebook |
+
+REST mirror: `GET/POST /api/v1/notebooks/{name}/entries`, `DELETE .../{id}`,
+`POST /api/v1/notebooks/news/digest`. News digest needs `VLA_AIWATCHER_BASE_URL`.
+
+```python
+await vla_diary(operation="log", notebook="dev", category="repo_fix",
+                title="fixed ruff gate", body="...", tags=["ruff"])
+await vla_diary(operation="log", category="blooper", title="deleted wrong branch", body="recovered via reflog")
+await vla_diary(operation="news")
+```

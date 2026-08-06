@@ -38,6 +38,7 @@ def _latest_pipeline_age_hours(dataset_root: str) -> tuple[float | None, str | N
 # 60s result cache - peer probes are slow when robots are offline, and supervisors poll often
 _LIVENESS_CACHE: dict[str, Any] = {"ts": 0.0, "data": None}
 
+
 async def check_pipeline_liveness(
     *,
     stale_hours: int = 168,

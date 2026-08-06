@@ -7,10 +7,9 @@ export default function WeightsPage() {
   const [models, setModels] = useState<Model[]>([]);
 
   useEffect(() => {
-    apiGet<{ models?: Model[] }>("/api/v1/status")
+    apiGet<{ weights?: { models?: Model[] } }>("/api/v1/status")
       .then((s) => {
-        const w = s.weights as { models?: Model[] } | undefined;
-        setModels(w?.models ?? []);
+        setModels(s.weights?.models ?? []);
       })
       .catch(console.error);
   }, []);
