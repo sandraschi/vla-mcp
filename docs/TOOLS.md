@@ -1,5 +1,11 @@
 # MCP Tool Reference
 
+## vla_pipeline_liveness
+
+Stale VLA loops + unreachable fleet peers. `stale_hours` (default 168).
+Returns `checks`, `alerts`, `healthy`. Intended for supervisors
+(meta-mcp, fleet-agent, aiwatcher) and daily checks.
+
 ## vla_status
 
 Read-only stack snapshot: Wall-OSS, WALL-WM, DMuon, HF cache, episode count.

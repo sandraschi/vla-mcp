@@ -62,7 +62,7 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
 
     @mcp.tool()
     async def vla_diary(
-        operation: Literal["log", "list", "get", "delete", "news", "status"],
+        operation: Literal["log", "list", "get", "delete", "news", "status", "summary"],
         notebook: str = "dev",
         category: str | None = None,
         title: str | None = None,
@@ -93,6 +93,8 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
         - news: pull the last 24h from aiwatcher /api/items and save an
           abridged digest entry to the news notebook.
         - status: entry counts per notebook.
+        - summary: per-notebook count + latest entry (what the dashboard
+          notebook cards show) - one call, all three diaries.
 
         Tagging convention (MANDATORY for agents):
         - Always include a "repo:{name}" tag when the entry involves a repo
@@ -128,6 +130,14 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
         - news needs VLA_AIWATCHER_BASE_URL configured
         """
         store = NotebookStore.default()
+
+        if operation == "summary":
+            summaries = store.summaries()
+            return {
+                "success": True,
+                "notebooks": summaries,
+                "message": "Per-notebook count + latest entry.",
+            }
 
         if operation == "status":
             counts = store.counts()
@@ -202,7 +212,7 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
         return {
             "success": False,
             "error": f"Unknown operation: {operation}",
-            "recovery_options": ["log", "list", "get", "delete", "news", "status"],
+            "recovery_options": ["log", "list", "get", "delete", "news", "status", "summary"],
         }
 
     all_tools["vla_diary"] = vla_diary

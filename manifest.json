@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.2",
   "name": "vla-mcp",
-  "version": "0.3.0",
-  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, E2E pipeline",
+  "version": "0.3.1b1",
+  "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, E2E pipeline, notebooks (personal/dev/news diaries)",
   "author": {
     "name": "Sandra Schipal",
     "email": "sandra@sandraschi.dev"
@@ -26,6 +26,7 @@
   ],
   "tools": [
     { "name": "vla_status", "description": "VLA stack status" },
+    { "name": "vla_pipeline_liveness", "description": "Stale VLA loops + unreachable fleet peers" },
     { "name": "vla_weights", "description": "Hugging Face checkpoint download" },
     { "name": "vla_wall", "description": "Wall-OSS-0.5 VLA (+ edge_prepare alias)" },
     { "name": "vla_xvla", "description": "X-VLA 0.9B PEFT edge adapter" },
@@ -34,7 +35,10 @@
     { "name": "vla_events", "description": "Telemetry event segmentation" },
     { "name": "vla_training", "description": "DMuon co-train launch" },
     { "name": "vla_fleet", "description": "Fleet peer bridge" },
-    { "name": "vla_pipeline", "description": "E2E fleet → ingest → export → DMuon dry_run" },
-    { "name": "vla_agentic_workflow", "description": "Multi-step VLA planning" }
+    { "name": "vla_pipeline", "description": "E2E fleet, ingest, export, DMuon dry_run" },
+    { "name": "vla_world", "description": "3D room generation via worldlabs-mcp" },
+    { "name": "vla_diary", "description": "Personal/dev/news notebooks: log, list, get, delete, news, status, summary" },
+    { "name": "vla_agentic_workflow", "description": "Multi-step VLA planning" },
+    { "name": "vla_help", "description": "Fleet integration, API keys, tools, troubleshooting" }
   ]
 }

@@ -25,6 +25,7 @@ from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
+from .pipeline_liveness import check_pipeline_liveness
 from .prompts_resources import register_prompts_and_resources
 from .tools.diary import register_diary_tool
 from .tools.prefab import register_prefab_tools
@@ -111,6 +112,24 @@ def build_mcp() -> FastMCP:
         instructions=INSTRUCTIONS,
     )
     _mount_fleet_proxies(mcp)
+
+    @mcp.tool(annotations=_READ_ONLY)
+    async def vla_pipeline_liveness(stale_hours: int = 168) -> dict[str, Any]:
+        """VLA_PIPELINE_LIVENESS - Stale VLA loops and unreachable fleet peers.
+
+        Surfaces when the last E2E pipeline run is older than stale_hours and
+        probes worldlabs/robotics/avatar peers for reachability. Intended for
+        supervisors (meta-mcp, fleet-agent, aiwatcher) and daily checks.
+
+        ## Return Format
+        {"success": bool, "checks": [...], "alerts": [...], "healthy": bool,
+         "stale_hours": int}
+
+        ## Examples
+        vla_pipeline_liveness()
+        vla_pipeline_liveness(stale_hours=48)
+        """
+        return await check_pipeline_liveness(stale_hours=stale_hours)
 
     @mcp.tool(annotations=_READ_ONLY)
     async def vla_status() -> dict[str, Any]:
@@ -532,6 +551,7 @@ def build_mcp() -> FastMCP:
     _ALL_TOOLS.update(
         {
             "vla_status": vla_status,
+            "vla_pipeline_liveness": vla_pipeline_liveness,
             "vla_weights": vla_weights,
             "vla_wall": vla_wall,
             "vla_xvla": vla_xvla,

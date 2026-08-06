@@ -23,7 +23,8 @@ GitHub: https://github.com/sandraschi/vla-mcp
 | vla_dataset | segment_telemetry, export_numpy_shard |
 | vla_training | launch_co_train, job_status, stop_job |
 | vla_fleet | call_peer |
-| vla_diary | log (repo_fix/tool_install/blooper/decision/note), list, get, delete (confirm=True), news, status |
+| vla_pipeline_liveness | stale loops + fleet peer probes (read-only) |
+| vla_diary | log (repo_fix/tool_install/blooper/decision/note), list, get, delete (confirm=True), news, status, summary |
 
 ## Notebooks (vla_diary)
 

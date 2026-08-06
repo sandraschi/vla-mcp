@@ -149,6 +149,12 @@ async def test_mcp_tools_registered():
 
 
 @pytest.mark.asyncio
+async def test_pipeline_liveness_tool():
+    result = await mcp.call_tool("vla_pipeline_liveness", {"stale_hours": 168})
+    assert result is not None
+
+
+@pytest.mark.asyncio
 async def test_prefab_tool_registered(monkeypatch):
     monkeypatch.setenv("VLA_PREFAB_APPS", "1")
     from vla_mcp.server import build_mcp

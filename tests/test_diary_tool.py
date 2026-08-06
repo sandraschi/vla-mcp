@@ -88,6 +88,20 @@ async def test_diary_news_not_configured(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_diary_summary(tmp_path, monkeypatch):
+    monkeypatch.setenv("VLA_DATASET_ROOT", str(tmp_path))
+    await mcp.call_tool(
+        "vla_diary",
+        {"operation": "log", "notebook": "personal", "title": "gartenbau", "body": "mahler 5"},
+    )
+    result = _text(await mcp.call_tool("vla_diary", {"operation": "summary"}))
+    assert result["success"] is True
+    assert result["notebooks"]["personal"]["count"] == 1
+    assert result["notebooks"]["personal"]["latest"]["title"] == "gartenbau"
+    assert result["notebooks"]["dev"]["count"] == 0
+
+
+@pytest.mark.asyncio
 async def test_diary_rejects_news_log(tmp_path, monkeypatch):
     monkeypatch.setenv("VLA_DATASET_ROOT", str(tmp_path))
     result = _text(

@@ -13,6 +13,10 @@ diary, AI-logged dev diary, aiwatcher news digest).
 Read-only snapshot of Wall-OSS, WALL-WM, DMuon, X-VLA health, HF weight cache,
 dataset episode count.
 
+### vla_pipeline_liveness
+Stale VLA loops + unreachable fleet peers. Returns checks, alerts, healthy.
+For supervisors (meta-mcp, fleet-agent, aiwatcher).
+
 ### vla_weights
 Operations: list_models, local_status, download. Hugging Face checkpoint
 manager for wall-oss-0.5, wall-wm, x-vla repos.
@@ -60,8 +64,9 @@ Three notebooks: personal (manual), dev (agent-logged), news (aiwatcher
 digest). Operations: log (categories repo_fix, tool_install, blooper,
 decision, note; author defaults to agent:opencode; tags use the repo:{name}
 convention; optional metrics JSON), list, get, delete (confirm=True), news,
-status. SQLite at {VLA_DATASET_ROOT}/notebooks/notebooks.sqlite3, 500-entry
-cap per notebook. REST mirror: /api/v1/notebooks.
+status (counts), summary (per-notebook count + latest entry). SQLite at
+{VLA_DATASET_ROOT}/notebooks/notebooks.sqlite3, 500-entry cap per notebook.
+REST mirror: /api/v1/notebooks.
 
 ### vla_agentic_workflow
 SEP-1577 multi-step planning with optional ctx.sample.
