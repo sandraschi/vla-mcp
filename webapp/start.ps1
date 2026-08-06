@@ -1,6 +1,7 @@
 # vla-mcp webapp launcher (fleet START_SCRIPT_STANDARD)
-param([switch]$Headless, [switch]$BackendOnly, [switch]$NoBrowser)
+param([switch]$Headless, [switch]$BackendOnly, [switch]$NoBrowser, [switch]$Demo)
 
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $BackendPort = 11024
 $FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"
 if (-not (Test-Path -LiteralPath $FleetStartPath)) {

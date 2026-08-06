@@ -35,12 +35,18 @@ def _latest_pipeline_age_hours(dataset_root: str) -> tuple[float | None, str | N
     return age_h, run_id or latest.name
 
 
+# 60s result cache - peer probes are slow when robots are offline, and supervisors poll often
+_LIVENESS_CACHE: dict[str, Any] = {"ts": 0.0, "data": None}
+
 async def check_pipeline_liveness(
     *,
     stale_hours: int = 168,
     config: VLAConfig | None = None,
 ) -> dict[str, Any]:
     """Surface stale VLA loops and unreachable robotics fleet peers."""
+    now = time.time()
+    if now - _LIVENESS_CACHE["ts"] < 60 and _LIVENESS_CACHE["data"] is not None:
+        return _LIVENESS_CACHE["data"]
     cfg = config or get_config()
     stale_hours = max(1, int(stale_hours))
     stale_seconds = stale_hours * 3600
@@ -145,7 +151,7 @@ async def check_pipeline_liveness(
             if a.get("severity") in ("critical", "warning"):
                 log.warning("VLA pipeline liveness [%s]: %s", a.get("code"), a.get("message"))
 
-    return {
+    result = {
         "success": True,
         "healthy": healthy,
         "critical_count": len(critical),
@@ -159,3 +165,6 @@ async def check_pipeline_liveness(
         "checks": checks,
         "alerts": alerts,
     }
+    _LIVENESS_CACHE["ts"] = time.time()
+    _LIVENESS_CACHE["data"] = result
+    return result
