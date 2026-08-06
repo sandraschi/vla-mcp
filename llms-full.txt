@@ -2,42 +2,109 @@
 
 ## Purpose
 
-Orchestrate X Square open-weight VLA stack with local MCP fleet (worldlabs-mcp, robotics-mcp, avatarops) for event-grounded synthetic training.
+Orchestrate X Square open-weight VLA stack (Wall-OSS-0.5, WALL-WM, DMuon, X-VLA)
+with the local MCP fleet (worldlabs-mcp, robotics-mcp, avatarops) for
+event-grounded synthetic training, plus three persistent notebooks (personal
+diary, AI-logged dev diary, aiwatcher news digest).
 
 ## MCP tools
 
 ### vla_status
-Read-only snapshot of Wall-OSS, WALL-WM, DMuon upstream paths and dataset episode count.
+Read-only snapshot of Wall-OSS, WALL-WM, DMuon, X-VLA health, HF weight cache,
+dataset episode count.
+
+### vla_weights
+Operations: list_models, local_status, download. Hugging Face checkpoint
+manager for wall-oss-0.5, wall-wm, x-vla repos.
 
 ### vla_wall
-Operations: health, infer_prepare, finetune_prepare, list_tasks.
+Operations: health, infer_prepare, finetune_prepare, list_tasks, edge_prepare.
 Wall-OSS-0.5 uses flow-matching action supervision for zero-shot manipulation.
+
+### vla_xvla
+Operations: health, list_targets, peft_config_template, peft_prepare,
+edge_prepare, infer_prepare. X-VLA 0.9B PEFT adapter for edge agents.
 
 ### vla_world_model
 Operations: health, train_prepare, predict_prepare, event_vocab.
-WALL-WM couples Wan text-to-video prior with action DiT; segments: approaching, contact, lift, slide, recovery.
+WALL-WM couples Wan text-to-video prior with action DiT; event joints:
+approaching, contact, lift, slide, recovery.
 
 ### vla_dataset
-Operations: ingest_episode, list_episodes (paginated), export_shard, validate_multiview.
-Stores JSON episodes under VLA_DATASET_ROOT.
+Operations: ingest_episode, segment_telemetry, list_episodes (paginated),
+export_shard, export_numpy_shard, validate_multiview. JSON episodes + numpy
+shards under VLA_DATASET_ROOT.
+
+### vla_events
+Operations: segment, vocab. Event-joint segmentation from telemetry rows.
 
 ### vla_training
-Operations: health, co_train_prepare, config_template.
+Operations: health, co_train_prepare, config_template, introspect_train_args,
+launch_co_train (confirm=True), job_status, job_log, stop_job.
 DMuon distributed Muon optimizer for gradient-bridged co-training.
 
+### vla_pipeline
+Operations: describe, run, last_run. End-to-end fleet → ingest → numpy export
+→ DMuon dry-run loop.
+
 ### vla_fleet
-Operations: bridge_status, scenario_brief, list_peers.
-Default peers: worldlabs :10865, robotics :10892, avatar :10793.
+Operations: bridge_status, scenario_brief, list_peers, call_peer.
+Default peers: worldlabs :10865, robotics :10706, avatar :10793, yahboom :10892.
+
+### vla_world
+Operations: describe, generate. 3D room generation via worldlabs-mcp
+(returns Marble viewer URL).
+
+### vla_diary
+Three notebooks: personal (manual), dev (agent-logged), news (aiwatcher
+digest). Operations: log (categories repo_fix, tool_install, blooper,
+decision, note; author defaults to agent:opencode; tags use the repo:{name}
+convention; optional metrics JSON), list, get, delete (confirm=True), news,
+status. SQLite at {VLA_DATASET_ROOT}/notebooks/notebooks.sqlite3, 500-entry
+cap per notebook. REST mirror: /api/v1/notebooks.
 
 ### vla_agentic_workflow
 SEP-1577 multi-step planning with optional ctx.sample.
 
+### vla_help
+Fleet integration, API keys, tools, configuration, troubleshooting docs.
+
+## Webapp (ports 11024 backend / 11025 frontend)
+
+Pages: Dashboard (KPIs + notebook cards), Dataset, Pipeline, Training,
+Weights, Notebooks, Fleet, Tools, Help, Status.
+
+REST API: /api/health, /api/v1/status, /api/v1/tools, /api/v1/fleet,
+/api/v1/dataset/episodes, /api/v1/training/jobs[/{id}/log[/stream]],
+/api/v1/pipeline/{last|run}, /api/v1/notebooks (+ entries, news digest),
+/api/v1/help, /api/capabilities, /api/llm/* (aiwatcher bridge when mounted).
+
 ## Environment
 
-VLA_WALL_X_ROOT, VLA_WALL_WM_ROOT, VLA_DMUON_ROOT, VLA_CHECKPOINT, VLA_DATASET_ROOT, VLA_DEVICE, VLA_*_MCP_URL
+VLA_WALL_X_ROOT, VLA_WALL_WM_ROOT, VLA_DMUON_ROOT, VLA_XVLA_ROOT,
+VLA_XVLA_PEFT_ADAPTER, VLA_XVLA_PEFT_DIR, VLA_XVLA_EDGE_DEVICE, VLA_CHECKPOINT,
+VLA_DATASET_ROOT, VLA_HF_CACHE_DIR, VLA_HF_WALL_OSS_REPO, VLA_HF_WALL_WM_REPO,
+VLA_HF_XVLA_REPO, VLA_DEVICE, VLA_DMUON_VRAM_SHARDS, VLA_API_PORT,
+VLA_FRONTEND_PORT, VLA_PREFAB_APPS, VLA_MOUNT_FLEET_PROXIES,
+VLA_WORLDLABS_MCP_URL, VLA_WORLDLABS_GEN_TOOL, VLA_WORLDLABS_GEN_ARG,
+VLA_YAHBOOM_MCP_URL, VLA_ROBOTICS_MCP_URL, VLA_AVATAR_MCP_URL,
+VLA_MCP_BRIDGE_URLS, VLA_AIWATCHER_BASE_URL, VLA_AIWATCHER_API_KEY,
+VLA_AIWATCHER_PUSH_ENABLED, VLA_PIPELINE_BOOMY_DEMO,
+VLA_PIPELINE_GENERATE_WORLD, MCP_TRANSPORT.
+
+News digest requires VLA_AIWATCHER_BASE_URL pointing at aiwatcher-mcp
+(GET /api/items). Fleet event push uses the same host (POST /api/fleet/ingest).
 
 ## Run
 
 uv sync --extra dev
 uv run pytest tests -q
-uv run uvicorn vla_mcp.server:app --port 11024
+uv run uvicorn vla_mcp.server:app --host 127.0.0.1 --port 11024
+npm --prefix webapp run dev   # frontend :11025
+
+## Architecture
+
+webapp (Vite React) <-> REST :11024 <-> FastMCP server (vla_* tools)
+  |-> aiwatcher :10946 (fleet events push + news digest pull)
+  |-> worldlabs :10865, robotics :10706, avatar :10793 (peer bridge)
+  |-> SQLite notebooks + JSON episode store under VLA_DATASET_ROOT

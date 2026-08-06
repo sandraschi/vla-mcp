@@ -33,6 +33,7 @@ MCP bridge for **Vision-Language-Action** — orchestrates X Square [wall-x](htt
 - Fleet peer probe + REST `call_peer` bridge
 - MCP proxy federation to worldlabs / robotics / avatar
 - FastMCP 3.2: skills, prompts, Prefab status card
+- **Notebooks**: personal diary + AI-logged dev diary (repo fixes, tools installed, bloopers) + abridged daily news digest from aiwatcher — dashboard cards + `/notebooks` page, `vla_diary` MCP tool
 
 <p align="center">
   <a href="https://github.com/sandraschi/vla-mcp"><img src="https://img.shields.io/badge/Status-Alpha/orange?style=flat-square" alt="Alpha"></a>

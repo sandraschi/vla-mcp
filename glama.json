@@ -1,8 +1,8 @@
 {
   "$schema": "https://glama.ai/schemas/mcp.json",
   "name": "vla-mcp",
-  "version": "0.1.0",
-  "description": "FastMCP 3.2 VLA bridge: X Square Wall-OSS-0.5, WALL-WM on Wan, DMuon co-training, worldlabs/robotics/avatar fleet loops.",
+  "version": "0.3.1b1",
+  "description": "FastMCP 3.2 VLA bridge: X Square Wall-OSS-0.5, WALL-WM on Wan, DMuon co-training, worldlabs/robotics/avatar fleet loops, plus personal/dev/news diaries (vla_diary).",
   "author": "Sandra Schipal",
   "license": "MIT",
   "language": "python",
@@ -10,7 +10,7 @@
   "type": "mcp_server",
   "status": "alpha",
   "transport": ["stdio", "http"],
-  "keywords": ["vla", "robotics", "world-model", "wall-oss", "mcp", "spatial-ai"],
+  "keywords": ["vla", "robotics", "world-model", "wall-oss", "mcp", "spatial-ai", "diary", "notebooks"],
   "homepage": "https://github.com/sandraschi/vla-mcp",
   "repository": {
     "url": "https://github.com/sandraschi/vla-mcp",
