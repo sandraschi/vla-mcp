@@ -20,3 +20,8 @@ _dashboard/
 *.bak-*
 tsconfig.tsbuildinfo
 
+
+data/
+notebooks/
+*.sqlite3
+

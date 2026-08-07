@@ -4,6 +4,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load the repo-root .env so every VLA_* value actually reaches the process
+# (uv run / uvicorn do not load .env themselves).
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 def _i(name: str, default: int) -> int:
