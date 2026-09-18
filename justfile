@@ -11,9 +11,7 @@ default:
     @just --list
 
 bootstrap:
-    uv sync --extra dev
-    Set-Location '{{justfile_directory()}}\webapp'
-    if (Get-Command bun -ErrorAction SilentlyContinue) { bun install } else { cmd /c npm install }
+    uv sync --extra dev; Set-Location '{{justfile_directory()}}\webapp'; if (Get-Command bun -ErrorAction SilentlyContinue) { bun install } else { cmd /c npm install }
 
 serve port=PORT:
     uv run uvicorn vla_mcp.server:app --host {{HOST}} --port {{port}}
@@ -22,8 +20,7 @@ stdio:
     uv run python -m vla_mcp.server --stdio
 
 web:
-    Set-Location '{{justfile_directory()}}\webapp'
-    if (Get-Command bun -ErrorAction SilentlyContinue) { bun run dev } else { npm run dev }
+    Set-Location '{{justfile_directory()}}\webapp'; if (Get-Command bun -ErrorAction SilentlyContinue) { bun run dev } else { npm run dev }
 
 test:
     uv run pytest tests -q
