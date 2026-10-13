@@ -73,3 +73,10 @@ ignore = ["S101", "B008", "S106", "S110", "S112", "S101", "B008", "S106", "S110"
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[dependency-groups]
+dev = [
+    "pillow>=12.3.0",
+    "pytesseract>=0.3.13",
+    "pywinauto>=0.6.9",
+]
