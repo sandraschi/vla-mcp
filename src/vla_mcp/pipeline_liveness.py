@@ -61,7 +61,7 @@ async def check_pipeline_liveness(
                 "severity": "warning",
                 "code": "VLA_PIPELINE_NEVER_RUN",
                 "message": (
-                    "No VLA pipeline provenance on disk — run vla_pipeline(operation='run') "
+                    "No VLA pipeline provenance on disk - run vla_pipeline(operation='run') "
                     "or use the webapp Pipeline tab"
                 ),
                 "detail": {"dataset_root": cfg.dataset_root},

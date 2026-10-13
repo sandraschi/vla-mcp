@@ -53,10 +53,10 @@ Vision-Language-Action bridge: Wall-OSS, WALL-WM, DMuon, X-VLA + fleet loops.
 
 ## Key tools
 
-- `vla_pipeline` — worldlabs → yahboom → dataset → DMuon dry-run
-- `vla_fleet` — peer probes + scenario brief
-- `vla_weights` — HuggingFace Wall-OSS / X-VLA
-- `vla_help` — this help
+- `vla_pipeline` - worldlabs → yahboom → dataset → DMuon dry-run
+- `vla_fleet` - peer probes + scenario brief
+- `vla_weights` - HuggingFace Wall-OSS / X-VLA
+- `vla_help` - this help
 
 ## Ports
 
@@ -99,8 +99,8 @@ def get_help(topic: str | None = None) -> dict[str, Any]:
         # Prepend key summary for agents that only read the top.
         prefix = (
             "## API keys (summary)\n\n"
-            "- `AIWATCHER_API_KEY` on aiwatcher-mcp — optional REST auth\n"
-            "- `VLA_AIWATCHER_API_KEY` on vla-mcp — **same value** when auth is on\n"
+            "- `AIWATCHER_API_KEY` on aiwatcher-mcp - optional REST auth\n"
+            "- `VLA_AIWATCHER_API_KEY` on vla-mcp - **same value** when auth is on\n"
             "- Leave both empty for localhost-only fleet ingest\n\n"
         )
         md = prefix + md

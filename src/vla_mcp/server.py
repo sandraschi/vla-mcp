@@ -534,7 +534,7 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_help(topic: str | None = None) -> dict[str, Any]:
-        """VLA_HELP — Fleet integration, API keys, tools, and setup documentation.
+        """VLA_HELP - Fleet integration, API keys, tools, and setup documentation.
 
         Call with no topic for index. Topics: fleet_integration, api_keys, tools,
         configuration, setup, troubleshooting, architecture, prd.

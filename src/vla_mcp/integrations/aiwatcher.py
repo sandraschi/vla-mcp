@@ -28,7 +28,7 @@ async def fetch_fleet_items(
     if not base:
         return {
             "success": False,
-            "error": "aiwatcher not configured — set VLA_AIWATCHER_BASE_URL",
+            "error": "aiwatcher not configured - set VLA_AIWATCHER_BASE_URL",
             "error_type": "not_configured",
             "recovery_options": [
                 "Set VLA_AIWATCHER_BASE_URL to the aiwatcher-mcp REST host",

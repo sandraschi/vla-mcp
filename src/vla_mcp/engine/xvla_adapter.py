@@ -118,8 +118,8 @@ class XVLAAdapter:
         h = self.health()
         yahboom_url = self.config.yahboom_mcp_url or "http://127.0.0.1:10892"
         steps = [
-            "vla_weights(operation='download', model_key='x-vla') — cache 0.9B base weights",
-            f"vla_xvla(operation='peft_prepare', target='{target}', write=True) — write LoRA config",
+            "vla_weights(operation='download', model_key='x-vla') - cache 0.9B base weights",
+            f"vla_xvla(operation='peft_prepare', target='{target}', write=True) - write LoRA config",
             "Fine-tune adapter in VLA_XVLA_ROOT per upstream README (PEFT on fleet shards)",
             "vla_fleet(operation='call_peer', peer='yahboom', tool_name='yahboom_demo', arguments={'operation': 'talkbot'})",
             "vla_fleet(operation='call_peer', peer='yahboom', tool_name='yahboom_tool', arguments={'operation': 'read_imu'})",

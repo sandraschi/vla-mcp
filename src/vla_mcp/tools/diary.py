@@ -1,4 +1,4 @@
-"""vla_diary — three notebooks: personal, dev (agent-logged), news (aiwatcher digest)."""
+"""vla_diary - three notebooks: personal, dev (agent-logged), news (aiwatcher digest)."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ async def _build_digest() -> dict[str, Any]:
         return {
             "success": True,
             "count": 0,
-            "message": "aiwatcher returned no items in the last 24h — no digest saved.",
+            "message": "aiwatcher returned no items in the last 24h - no digest saved.",
         }
     top = items[:10]
     body = "\n".join(_abridge_item(i) for i in top)
