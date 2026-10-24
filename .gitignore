@@ -18,6 +18,9 @@ _dashboard/
 *.bak
 
 *.bak-*
+*.bak.*
+*.mcpb
+reports/
 tsconfig.tsbuildinfo
 
 

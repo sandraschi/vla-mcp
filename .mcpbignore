@@ -22,4 +22,8 @@ build/
 # Non-MCP components (webapp, native, scripts)
 native/
 web_sota/
+webapp/
 scripts/
+data/
+*.bak
+*.bak.*

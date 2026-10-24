@@ -28,6 +28,9 @@ test:
 lint:
     uv run ruff check src tests
 
+fmt:
+    uv run ruff format src tests
+
 fix:
     uv run ruff check src tests --fix
     uv run ruff format src tests
