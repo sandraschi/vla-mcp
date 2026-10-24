@@ -76,8 +76,22 @@ Fleet integration, API keys, tools, configuration, troubleshooting docs.
 
 ### vla_shutdown
 Orderly self-termination (200 flush, ~500 ms exit). REST mirror: POST /api/shutdown.
+Blocked from generic POST /api/v1/control (terminal op, like vla_agentic_workflow).
+
+### show_vla_status_card / show_pipeline_run_card
+Prefab in-chat cards (app=True). Skill: skill://vla-expert/SKILL.md.
 
 ## Webapp (ports 11024 backend / 11025 frontend)
+
+Pages: Dashboard (hero+KPIs+onboarding cue), Inbox, Chat, Dataset, Pipeline, Training,
+Weights, Notebooks, Fleet, Tools, Skills, Logs, Help, Settings, Status.
+
+REST API: /api/health, /api/v1/status, /api/v1/tools, /api/v1/fleet,
+/api/v1/dataset/episodes, /api/v1/training/jobs[/{id}/log[/stream]],
+/api/v1/pipeline/{last,run}, /api/v1/notebooks (+ entries, news digest),
+/api/v1/help, /api/capabilities, /api/skills, /api/v1/diagnostics,
+/api/llm/{discover,providers,models,chat,chat/stream,onboarding} (chat is the only
+path the Chat page uses; keys never leave the server), POST /api/shutdown.
 
 Pages: Dashboard (KPIs + notebook cards), Dataset, Pipeline, Training,
 Weights, Notebooks, Fleet, Tools, Help, Status.

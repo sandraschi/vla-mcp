@@ -14,6 +14,24 @@
 - `.gitignore`: `reports/`, `*.mcpb`, `*.bak.*`; `.mcpbignore`: `webapp/`, `data/`, `*.bak.*`.
 - README: Claude Desktop `.mcpb` + `install.ps1` one-liner.
 
+### Fixed (deferred round, 2026-10-25)
+- Tool docstrings fleet-wide: `Annotated[..., Field(...)]` params, `## Return Format` +
+  `## Examples` on all 16 tools; `vla_diary` too. `vla_shutdown` REST-blocked (was callable
+  without confirm via generic control endpoint).
+- Backend: `GET /api/skills`, `/api/llm/*` proxy (discover/providers/models/chat/stream/onboarding),
+  `GET /api/v1/diagnostics`. `run_sse_async` dead call removed (FastMCP 3.x has no SSE).
+- Webapp catch-them-all: Chat (skill-first, 4+1 personalities, localStorage, export/clear),
+  Settings (provider cards, model dropdown, Test, onboarding facts), Inbox, Logs, Skills pages;
+  red under-hero onboarding cue (`data-testid="onboarding-cue"`); `/api` same-origin + Tauri gate.
+- Gates: pyright 0 errors (fixed Prefab `css_class`, `run_sse_async`, Optional member access);
+  pytest-cov threshold 55 (actual 56); Biome clean (`biome.json`, `biome:ci`/`check` scripts,
+  exhaustive-deps + key fixes); e2e scaffold (playwright config + 3 smoke specs, all passing).
+- CI: push/PR triggers, node 22, jobs test (ruff/format/pyright/pytest) + web (biome/tsc/build)
+  + e2e (playwright). Release v0.3.1b1 now carries `.mcpb` + `install.ps1` assets.
+- NSIS: fleet `mcp-clients.nsh` vendored + registered (NOREG cleared); `native/build.ps1`
+  `$envSrc` crash + stray-flag syntax error fixed; MCPB audit `clean`, bundle packed +
+  smoke-launched (85 KB).
+
 ## [0.3.1b1] - 2026-08-06
 
 ### Added

@@ -21,6 +21,8 @@ _dashboard/
 *.bak.*
 *.mcpb
 reports/
+test-results/
+playwright-report/
 tsconfig.tsbuildinfo
 
 
