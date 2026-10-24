@@ -14,6 +14,11 @@ export default function Dashboard() {
   const [caps, setCaps] = useState<Record<string, unknown> | null>(null);
   const [tools, setTools] = useState<string[]>([]);
   const [notebooks, setNotebooks] = useState<Record<string, NotebookSummary> | null>(null);
+  const [onboarding, setOnboarding] = useState<{
+    detected: string[];
+    mock: boolean;
+    recommended_path: string;
+  } | null>(null);
 
   useEffect(() => {
     apiGet("/api/v1/status").then(setStatus).catch(console.error);
@@ -22,6 +27,13 @@ export default function Dashboard() {
     apiGet<{ notebooks: Record<string, NotebookSummary> }>("/api/v1/notebooks")
       .then((d) => setNotebooks(d.notebooks))
       .catch(console.error);
+    apiGet<{
+      detected: string[];
+      mock: boolean;
+      recommended_path: string;
+    }>("/api/llm/onboarding")
+      .then(setOnboarding)
+      .catch(() => {});
   }, []);
 
   const cards = [
@@ -36,9 +48,28 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">VLA Dashboard</h1>
-      <p className="text-gray-400 text-sm mb-6">
+      <p className="text-gray-400 text-sm mb-4">
         Wall-OSS-0.5 + WALL-WM + DMuon — event-joint spatial intelligence (wall-x / WALL-E stack)
       </p>
+
+      {onboarding && (
+        <div
+          data-testid="onboarding-cue"
+          className={`border rounded-lg p-4 mb-6 text-sm ${
+            onboarding.mock
+              ? "bg-red-950/60 border-red-700 text-red-200"
+              : "bg-green-950/40 border-green-800 text-green-200"
+          }`}
+        >
+          <span className="font-semibold">
+            {onboarding.mock ? "MOCK data until onboarded — " : "Onboarded — "}
+          </span>
+          {onboarding.recommended_path}{" "}
+          <Link to="/settings" className="underline font-medium">
+            Open Settings
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {cards.map(({ label, value, icon: Icon }) => (

@@ -8,14 +8,21 @@ import {
   Brain,
   Download,
   GitBranch,
+  Inbox,
   LayoutDashboard,
+  MessageSquare,
   Network,
   NotebookPen,
+  ScrollText,
+  Settings,
+  Sparkles,
   Wrench,
 } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/inbox", label: "Inbox", icon: Inbox },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/dataset", label: "Dataset", icon: Boxes },
   { to: "/pipeline", label: "Pipeline", icon: GitBranch },
   { to: "/training", label: "Training", icon: Brain },
@@ -23,7 +30,10 @@ const navItems = [
   { to: "/notebooks", label: "Notebooks", icon: NotebookPen },
   { to: "/fleet", label: "Fleet", icon: Network },
   { to: "/tools", label: "Tools", icon: Wrench },
+  { to: "/skills", label: "Skills", icon: Sparkles },
+  { to: "/logs", label: "Logs", icon: ScrollText },
   { to: "/help", label: "Help", icon: BookOpen },
+  { to: "/settings", label: "Settings", icon: Settings },
   { to: "/status", label: "Status", icon: Activity },
 ];
 
