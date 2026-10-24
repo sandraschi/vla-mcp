@@ -28,7 +28,8 @@
         "icon": ["icons/icon.png", "icons/icon.ico"],
         "resources": [
             "resources/vla-mcp-backend.exe",
-            "resources/.env.example"],
+            "resources/.env.example",
+            "resources/install-mcp-clients.ps1"],
         "windows": {
             "webviewInstallMode": {
                 "type": "skip"

@@ -1,4 +1,10 @@
-; Kill UI + backend before install/uninstall (backend locks resources/*.exe).
+; Fleet Tauri: kill UI + backend before install/uninstall (backend locks resources/*.exe).
+; Client registration: mcp-clients.nsh (vendored fleet canonical) registers the
+; stdio backend in detected AI tools (Claude/Cursor/Antigravity/OpenCode).
+!define MCP_REG_NAME "vla-mcp"
+!define MCP_REG_EXE "vla-mcp-backend.exe"
+!include "mcp-clients.nsh"
+
 !macro KillVlaMcpFleetProcesses
   DetailPrint "Stopping vla-mcp processes..."
   ExecWait 'taskkill /F /IM vla-mcp-backend.exe /T' $0
@@ -21,13 +27,12 @@
   !insertmacro KillVlaMcpFleetProcesses
 !macroend
 
-!macro NSIS_HOOK_PREUNINSTALL
+!macro NSIS_HOOK_POSTINSTALL
   !insertmacro KillVlaMcpFleetProcesses
+  !insertmacro McpClientsRegister
 !macroend
 
-!macro NSIS_HOOK_POSTINSTALL
-  IfFileExists "$INSTDIR\resources\install-mcp-clients.ps1" 0 mcp_hook_done
-    DetailPrint "Optional: register vla-mcp in Cursor / Claude Desktop"
-    ExecWait 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\resources\install-mcp-clients.ps1" -Interactive'
-  mcp_hook_done:
+!macro NSIS_HOOK_PREUNINSTALL
+  !insertmacro KillVlaMcpFleetProcesses
+  !insertmacro McpClientsUnregister
 !macroend
