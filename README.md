@@ -52,6 +52,10 @@ uv sync --extra dev
 
 Full paths: [INSTALL.md](INSTALL.md)
 
+Claude Desktop: download `vla-mcp.mcpb` + `install.ps1` from
+[releases/latest](https://github.com/sandraschi/vla-mcp/releases/latest/download/install.ps1)
+and run `install.ps1` — or use `uvx vla-mcp` for other clients.
+
 ## What you can do
 
 > "Run vla_status and give me a scenario brief for Raspbot + VRoid training in a cluttered room."

@@ -74,6 +74,9 @@ SEP-1577 multi-step planning with optional ctx.sample.
 ### vla_help
 Fleet integration, API keys, tools, configuration, troubleshooting docs.
 
+### vla_shutdown
+Orderly self-termination (200 flush, ~500 ms exit). REST mirror: POST /api/shutdown.
+
 ## Webapp (ports 11024 backend / 11025 frontend)
 
 Pages: Dashboard (KPIs + notebook cards), Dataset, Pipeline, Training,

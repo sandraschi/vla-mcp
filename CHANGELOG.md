@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased] - 2026-10-25 assfix
+### Fixed
+- MCPB `mcpb/manifest.json` `${PWD}` → `${__dirname}` (bundle starts on real installs).
+- CORS: explicit Tauri origins + LAN/Tailscale `allow_origin_regex`; HTTP transport now serves
+  the combined FastAPI app (CORS + REST + /mcp) instead of bare `run_http_async`.
+- Webapp `api.ts`: same-origin relative by default, absolute backend only behind Tauri gate.
+- Added `vla_shutdown` MCP tool + `POST /api/shutdown` (orderly 500 ms exit).
+- `.env.example`: repo-machine `D:\Dev\repos\...` defaults cleared (code falls back to `%TEMP%\vla_mcp_data`).
+- Ruff: dropped `S110`/`S112` silences (fixed real `except: pass` in pipeline_runner), enabled `T20`; added `fmt` recipe.
+- Standards files: `.pre-commit-config.yaml`, `.gitattributes`, `.cursorrules`, `.windsurfrules`,
+  copilot instructions, Claude-Code hook, opencode skill, `docs/ONBOARDING.md`, `scripts/pre-commit-biome.ps1`.
+- `.gitignore`: `reports/`, `*.mcpb`, `*.bak.*`; `.mcpbignore`: `webapp/`, `data/`, `*.bak.*`.
+- README: Claude Desktop `.mcpb` + `install.ps1` one-liner.
+
 ## [0.3.1b1] - 2026-08-06
 
 ### Added
