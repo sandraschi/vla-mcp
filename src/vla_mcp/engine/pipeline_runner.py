@@ -63,8 +63,9 @@ def _telemetry_from_boomy_demo(
     include_failures: bool,
 ) -> list[dict[str, Any]]:
     """Derive episode rows from Boomy demo status/transcript when live."""
-    final = demo_result.get("final") or {}
-    status = final.get("result") if isinstance(final.get("result"), dict) else final
+    final: dict[str, Any] = demo_result.get("final") or {}
+    result = final.get("result")
+    status: dict[str, Any] = result if isinstance(result, dict) else final
     rows: list[dict[str, Any]] = []
 
     if demo == "talkbot":
@@ -464,6 +465,6 @@ class PipelineRunner:
                 from ..integrations.aiwatcher import push_pipeline_complete
 
                 await push_pipeline_complete(payload, config=self.config)
-            except Exception as exc:
-                logger.warning("aiwatcher_push_failed", error=str(exc))
+            except Exception:
+                logger.exception("aiwatcher_push_failed")
         return payload

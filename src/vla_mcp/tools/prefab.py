@@ -44,12 +44,12 @@ def register_prefab_tools(
     async def show_vla_status_card() -> PrefabApp:
         """Show VLA stack status as an in-chat Prefab card."""
         fn = all_tools.get("vla_status")
-        data = await fn() if fn else {"success": False}
-        wall = data.get("wall") or {}
-        wm = data.get("world_model") or {}
-        dm = data.get("dmuon") or {}
-        xvla = data.get("xvla") or {}
-        with Card(className="max-w-lg") as card:
+        data: dict[str, Any] = await fn() if fn else {"success": False}
+        wall: dict[str, Any] = data.get("wall") or {}
+        wm: dict[str, Any] = data.get("world_model") or {}
+        dm: dict[str, Any] = data.get("dmuon") or {}
+        xvla: dict[str, Any] = data.get("xvla") or {}
+        with Card(css_class="max-w-lg") as card:
             with CardHeader():
                 CardTitle("VLA-MCP Status")
             with CardContent():
@@ -68,9 +68,9 @@ def register_prefab_tools(
         Renders the closed-loop diagram, metric tiles (shard arrays, event-joints, mode),
         the event chain, and the DMuon command. Run vla_pipeline(operation='run') first.
         """
-        out = PipelineRunner.default().last_run()
+        out: dict[str, Any] = PipelineRunner.default().last_run()
         if not out.get("success"):
-            with Card(className="max-w-xl") as empty:
+            with Card(css_class="max-w-xl") as empty:
                 with CardHeader():
                     CardTitle("VLA-MCP Pipeline")
                     CardDescription(content="No run recorded yet")
@@ -79,7 +79,7 @@ def register_prefab_tools(
                     Text("Run vla_pipeline(operation='run', live=False) to populate this card.")
             return PrefabApp(view=empty, title="VLA-MCP Pipeline")
 
-        run = out.get("run") or {}
+        run: dict[str, Any] = out.get("run") or {}
         mode = str(run.get("mode", "?"))
         run_id = str(run.get("run_id", "?"))
         shard = str(run.get("shard_name", "?"))
@@ -89,7 +89,7 @@ def register_prefab_tools(
         cmd_str = " ".join(str(c) for c in cmd) if isinstance(cmd, list) else str(cmd)
         finished = str(run.get("finished_at", ""))
 
-        with Card(className="max-w-2xl") as card:
+        with Card(css_class="max-w-2xl") as card:
             with CardHeader():
                 CardTitle("VLA-MCP Pipeline")
                 CardDescription(content=f"{mode} · run {run_id} · {finished}")

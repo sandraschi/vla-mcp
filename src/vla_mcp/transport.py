@@ -67,7 +67,10 @@ async def run_server_async(mcp: FastMCP, server_name: str) -> None:
     if conf["transport"] == "stdio":
         await mcp.run_stdio_async()
         return
-    if conf["transport"] == "http":
+    if conf["transport"] in ("http", "sse"):
+        if conf["transport"] == "sse":
+            # SSE transport was removed in FastMCP 3.x; streamable HTTP is its successor.
+            logger.warning("sse transport removed upstream; serving streamable HTTP instead")
         # Serve the combined FastAPI app (CORS + REST + /mcp mount), not the bare
         # MCP sub-app: mcp.run_http_async() drops CORSMiddleware (fleet HIGH).
         import uvicorn
@@ -78,7 +81,7 @@ async def run_server_async(mcp: FastMCP, server_name: str) -> None:
         _server = uvicorn.Server(_cfg)
         await _server.serve()
         return
-    await mcp.run_sse_async(host=conf["host"], port=conf["port"])
+    raise ValueError(f"unknown transport: {conf['transport']}")
 
 
 def run_server(mcp: FastMCP, server_name: str) -> None:
