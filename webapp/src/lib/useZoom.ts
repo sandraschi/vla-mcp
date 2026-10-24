@@ -18,13 +18,13 @@ export function useZoom() {
 			const { getCurrentWebview } = await import("@tauri-apps/api/webview");
 			await getCurrentWebview().setZoom(level);
 		} catch {
-				// Dev browser fallback: CSS scale on root
-				const root = document.documentElement;
-				root.style.transform = `scale(${level})`;
-				root.style.transformOrigin = "top left";
-				root.style.width = `${100 / level}%`;
-				root.style.height = `${100 / level}%`;
-			}
+			// Dev browser fallback: CSS scale on root
+			const root = document.documentElement;
+			root.style.transform = `scale(${level})`;
+			root.style.transformOrigin = "top left";
+			root.style.width = `${100 / level}%`;
+			root.style.height = `${100 / level}%`;
+		}
 	}, []);
 
 	useEffect(() => {
@@ -32,9 +32,10 @@ export function useZoom() {
 			if (!e.ctrlKey) return;
 			e.preventDefault();
 			setZoomIndex((prev) => {
-				const next = e.deltaY < 0
-					? Math.min(prev + 1, ZOOM_LEVELS.length - 1)
-					: Math.max(prev - 1, 0);
+				const next =
+					e.deltaY < 0
+						? Math.min(prev + 1, ZOOM_LEVELS.length - 1)
+						: Math.max(prev - 1, 0);
 				if (next !== prev) applyZoom(ZOOM_LEVELS[next]);
 				return next;
 			});
