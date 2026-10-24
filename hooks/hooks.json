@@ -1,0 +1,1 @@
+{"hooks": {"SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "echo '## vla-mcp: run vla_status + vla_pipeline_liveness first; log via vla_diary at close'"}]}]}}

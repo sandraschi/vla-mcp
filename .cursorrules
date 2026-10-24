@@ -1,0 +1,6 @@
+# vla-mcp — Cursor session context
+
+## Session Context (vla-mcp)
+Before starting work: run `vla_status` + `vla_pipeline_liveness` to ground in Wall-OSS / WALL-WM / DMuon health and stale loops.
+At end of work: log the session via `vla_diary(operation="log", category="repo_fix", tags="repo:vla-mcp")` with gate evidence (tests_passed, build_ok).
+DMuon launches and weight downloads are confirm-gated; never auto-confirm.
