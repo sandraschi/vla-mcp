@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import uuid
 from dataclasses import dataclass, field
@@ -14,6 +15,8 @@ from ..config import VLAConfig, get_config
 from .dataset_store import DatasetStore
 from .dmuon_runner import DMuonRunner
 from .fleet_bridge import FleetBridge
+
+logger = logging.getLogger(__name__)
 
 BoomyDemo = Literal["none", "draw", "talkbot"]
 
@@ -461,6 +464,6 @@ class PipelineRunner:
                 from ..integrations.aiwatcher import push_pipeline_complete
 
                 await push_pipeline_complete(payload, config=self.config)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("aiwatcher_push_failed", error=str(exc))
         return payload

@@ -68,7 +68,15 @@ async def run_server_async(mcp: FastMCP, server_name: str) -> None:
         await mcp.run_stdio_async()
         return
     if conf["transport"] == "http":
-        await mcp.run_http_async(host=conf["host"], port=conf["port"], path=conf["path"])
+        # Serve the combined FastAPI app (CORS + REST + /mcp mount), not the bare
+        # MCP sub-app: mcp.run_http_async() drops CORSMiddleware (fleet HIGH).
+        import uvicorn
+
+        from .server import app as _fastapi_app
+
+        _cfg = uvicorn.Config(_fastapi_app, host=conf["host"], port=conf["port"], log_level="info")
+        _server = uvicorn.Server(_cfg)
+        await _server.serve()
         return
     await mcp.run_sse_async(host=conf["host"], port=conf["port"])
 

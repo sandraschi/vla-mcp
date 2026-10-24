@@ -305,3 +305,15 @@ def setup_webapp(
             "description": "Vision-Language-Action bridge: Wall-OSS-0.5, WALL-WM, DMuon",
             "transport": {"stdio": True, "http": f"http://127.0.0.1:{get_config().api_port}/mcp"},
         }
+
+    @app.post("/api/shutdown")
+    async def api_shutdown() -> JSONResponse:
+        import os as _os
+
+        async def _exit_later() -> None:
+            await asyncio.sleep(0.5)
+            _os._exit(0)
+
+        _task = asyncio.create_task(_exit_later())
+        _task.set_name("vla-shutdown")
+        return JSONResponse({"success": True, "message": "vla-mcp shutting down"})

@@ -544,6 +544,30 @@ def build_mcp() -> FastMCP:
         """
         return get_help(topic)
 
+    @mcp.tool(annotations=_READ_ONLY)
+    async def vla_shutdown() -> dict[str, Any]:
+        """VLA_SHUTDOWN - Orderly self-termination for agents and the fleet launcher.
+
+        Responds immediately, then exits the process ~500 ms later so depot
+        writes and in-flight jobs can flush (same contract as POST /api/shutdown).
+
+        ## Return Format
+        {"success": bool, "message": str}
+
+        ## Examples
+        vla_shutdown()
+        """
+        import asyncio as _asyncio
+        import os as _os
+
+        async def _exit_later() -> None:
+            await _asyncio.sleep(0.5)
+            _os._exit(0)
+
+        _task = _asyncio.create_task(_exit_later())
+        _task.set_name("vla-shutdown")
+        return {"success": True, "message": "vla-mcp shutting down in ~500 ms"}
+
     register_prompts_and_resources(mcp)
     _add_skills_provider(mcp)
 
@@ -564,6 +588,7 @@ def build_mcp() -> FastMCP:
             "vla_world": vla_world,
             "vla_agentic_workflow": vla_agentic_workflow,
             "vla_help": vla_help,
+            "vla_shutdown": vla_shutdown,
         }
     )
     register_prefab_tools(mcp, _ALL_TOOLS)
@@ -580,7 +605,11 @@ app.add_middleware(
     allow_origins=[
         f"http://127.0.0.1:{_cfg.frontend_port}",
         f"http://localhost:{_cfg.frontend_port}",
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
     ],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|.*\.ts\.net|.*\.tailwind.*)(:\d+)?",
     allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
