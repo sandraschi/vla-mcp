@@ -7,12 +7,13 @@ import os
 import sys
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastmcp import Context, FastMCP
+from pydantic import Field
 
 from . import __version__
 from .config import get_config
@@ -133,7 +134,16 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool(annotations=_READ_ONLY)
     async def vla_status() -> dict[str, Any]:
-        """VLA_STATUS - Snapshot of Wall-OSS, WALL-WM, DMuon, HF cache, and dataset."""
+        """VLA_STATUS - Snapshot of Wall-OSS, WALL-WM, DMuon, HF cache, and dataset.
+
+        ## Return Format
+        {"success": True, "wall": {...}, "world_model": {...}, "dmuon": {...},
+         "xvla": {...}, "weights": [...], "dataset_root": str,
+         "dataset_episodes": int, "device": str, "message": str}
+
+        ## Examples
+        vla_status()
+        """
         cfg = get_config()
         store = DatasetStore.default()
         ep = store.list_episodes(limit=1)
@@ -154,19 +164,25 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_weights(
-        operation: Literal["list_models", "local_status", "download"],
-        model_key: str | None = None,
-        revision: str | None = None,
+        operation: Annotated[
+            Literal["list_models", "local_status", "download"],
+            Field(description="list_models, local_status, or download"),
+        ],
+        model_key: Annotated[
+            str | None,
+            Field(description="wall-oss-0.5 or wall-wm (required for download/local_status)"),
+        ] = None,
+        revision: Annotated[str | None, Field(description="Optional HF git revision")] = None,
     ) -> dict[str, Any]:
         """VLA_WEIGHTS - Hugging Face checkpoint download for Wall-OSS and WALL-WM.
 
-        Args:
-            operation: list_models, local_status, or download
-            model_key: wall-oss-0.5 or wall-wm (required for download/local_status)
-            revision: Optional HF git revision
+        ## Return Format
+        {"success": bool, "models"?: [...], "status"?: {...}, "path"?: str,
+         "message"?: str, "error"?: str, "recovery_options"?: [...]}
 
-        Returns:
-            Structured dict with paths and download status.
+        ## Examples
+        vla_weights(operation="list_models")
+        vla_weights(operation="download", model_key="wall-oss-0.5")
         """
         mgr = HFWeightManager.default()
         if operation == "list_models":
@@ -185,12 +201,23 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_wall(
-        operation: Literal["health", "infer_prepare", "finetune_prepare", "list_tasks", "edge_prepare"],
-        task_hint: str | None = None,
-        recipe: str | None = None,
-        target: str = "raspbot",
+        operation: Annotated[
+            Literal["health", "infer_prepare", "finetune_prepare", "list_tasks", "edge_prepare"],
+            Field(description="Wall-OSS-0.5 operation"),
+        ],
+        task_hint: Annotated[str | None, Field(description="Task hint for infer_prepare")] = None,
+        recipe: Annotated[str | None, Field(description="Recipe for finetune_prepare")] = None,
+        target: Annotated[str, Field(description="Edge target for edge_prepare")] = "raspbot",
     ) -> dict[str, Any]:
-        """VLA_WALL - Portmanteau for Wall-OSS-0.5 VLA (gradient-bridged MoT + flow matching)."""
+        """VLA_WALL - Portmanteau for Wall-OSS-0.5 VLA (gradient-bridged MoT + flow matching).
+
+        ## Return Format
+        {"success": bool, "result"?: {...}, "message"?: str, "error"?: str}
+
+        ## Examples
+        vla_wall(operation="health")
+        vla_wall(operation="infer_prepare", task_hint="pick up the red cube")
+        """
         runner = WallRunner.default()
         if operation == "health":
             return {"success": True, "result": runner.health(), "message": "Wall-OSS-0.5 status."}
@@ -206,20 +233,31 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_xvla(
-        operation: Literal[
-            "health",
-            "list_targets",
-            "peft_config_template",
-            "peft_prepare",
-            "edge_prepare",
-            "infer_prepare",
+        operation: Annotated[
+            Literal[
+                "health",
+                "list_targets",
+                "peft_config_template",
+                "peft_prepare",
+                "edge_prepare",
+                "infer_prepare",
+            ],
+            Field(description="X-VLA edge-adapter operation"),
         ],
-        target: str = "raspbot",
-        rank: int = 8,
-        write: bool = False,
-        task_hint: str | None = None,
+        target: Annotated[str, Field(description="Edge agent target")] = "raspbot",
+        rank: Annotated[int, Field(description="PEFT rank for peft_prepare")] = 8,
+        write: Annotated[bool, Field(description="Write adapter files (confirm-gated via REST)")] = False,
+        task_hint: Annotated[str | None, Field(description="Task hint for infer_prepare")] = None,
     ) -> dict[str, Any]:
-        """VLA_XVLA - X-VLA 0.9B flow-matching VLA with PEFT for edge agents (Raspbot/Boomy)."""
+        """VLA_XVLA - X-VLA 0.9B flow-matching VLA with PEFT for edge agents (Raspbot/Boomy).
+
+        ## Return Format
+        {"success": bool, "result"?: {...}, "message"?: str, "error"?: str}
+
+        ## Examples
+        vla_xvla(operation="health")
+        vla_xvla(operation="peft_config_template", target="raspbot", rank=8)
+        """
         adapter = XVLAAdapter.default()
         if operation == "health":
             return {"success": True, "result": adapter.health(), "message": "X-VLA edge adapter status."}
@@ -237,11 +275,22 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_world_model(
-        operation: Literal["health", "train_prepare", "predict_prepare", "event_vocab"],
-        notes: str | None = None,
-        horizon_steps: int = 16,
+        operation: Annotated[
+            Literal["health", "train_prepare", "predict_prepare", "event_vocab"],
+            Field(description="WALL-WM world-model operation"),
+        ],
+        notes: Annotated[str | None, Field(description="Notes for train_prepare")] = None,
+        horizon_steps: Annotated[int, Field(description="Rollout horizon for predict_prepare")] = 16,
     ) -> dict[str, Any]:
-        """VLA_WORLD_MODEL - WALL-WM world action model (event joints, Wan prior)."""
+        """VLA_WORLD_MODEL - WALL-WM world action model (event joints, Wan prior).
+
+        ## Return Format
+        {"success": bool, "result"?: {...}, "message"?: str, "error"?: str}
+
+        ## Examples
+        vla_world_model(operation="health")
+        vla_world_model(operation="event_vocab")
+        """
         runner = WorldModelRunner.default()
         if operation == "health":
             return {"success": True, "result": runner.health(), "message": "WALL-WM status."}
@@ -255,27 +304,42 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_dataset(
-        operation: Literal[
-            "ingest_episode",
-            "list_episodes",
-            "export_shard",
-            "export_numpy_shard",
-            "validate_multiview",
-            "segment_telemetry",
+        operation: Annotated[
+            Literal[
+                "ingest_episode",
+                "list_episodes",
+                "export_shard",
+                "export_numpy_shard",
+                "validate_multiview",
+                "segment_telemetry",
+            ],
+            Field(description="Dataset registry operation"),
         ],
-        source: str | None = None,
-        events: list[str] | None = None,
-        video_paths: list[str] | None = None,
-        action_path: str | None = None,
-        actions: list[Any] | None = None,
-        metadata: dict[str, Any] | None = None,
-        telemetry: list[dict[str, Any]] | None = None,
-        limit: int = 50,
-        offset: int = 0,
-        shard_name: str | None = None,
+        source: Annotated[str | None, Field(description="Episode source label")] = None,
+        events: Annotated[list[str] | None, Field(description="Event-joint tags")] = None,
+        video_paths: Annotated[list[str] | None, Field(description="Multiview video paths")] = None,
+        action_path: Annotated[str | None, Field(description="Action trajectory file")] = None,
+        actions: Annotated[list[Any] | None, Field(description="Inline action rows")] = None,
+        metadata: Annotated[dict[str, Any] | None, Field(description="Episode metadata")] = None,
+        telemetry: Annotated[
+            list[dict[str, Any]] | None, Field(description="Telemetry rows for segment_telemetry")
+        ] = None,
+        limit: Annotated[int, Field(description="Page size for list_episodes")] = 50,
+        offset: Annotated[int, Field(description="Offset for list_episodes")] = 0,
+        shard_name: Annotated[str | None, Field(description="Shard name for export operations")] = None,
         episode_ids: list[str] | None = None,
     ) -> dict[str, Any]:
-        """VLA_DATASET - Event-grounded trajectory registry and numpy export for DMuon."""
+        """VLA_DATASET - Event-grounded trajectory registry and numpy export for DMuon.
+
+        ## Return Format
+        {"success": bool, "episodes"?: [...], "total"?: int, "shard"?: str,
+         "message"?: str, "error"?: str, "error_type"?: str}
+
+        ## Examples
+        vla_dataset(operation="list_episodes", limit=10)
+        vla_dataset(operation="segment_telemetry", source="boomy_b", telemetry=[...])
+        vla_dataset(operation="export_numpy_shard", shard_name="train_001")
+        """
         store = DatasetStore.default()
         if operation == "ingest_episode":
             if not source or not events:
@@ -318,17 +382,21 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_events(
-        operation: Literal["segment", "vocab"],
-        samples: list[dict[str, Any]] | None = None,
+        operation: Annotated[Literal["segment", "vocab"], Field(description="segment or vocab")],
+        samples: Annotated[
+            list[dict[str, Any]] | None,
+            Field(description="Telemetry rows for segment (timestamp, velocity, contact_force, ...)"),
+        ] = None,
     ) -> dict[str, Any]:
         """VLA_EVENTS - Event-joint segmentation (WALL-WM style, not equilong chunks).
 
-        Args:
-            operation: segment or vocab
-            samples: Telemetry rows for segment (timestamp, velocity, contact_force, ...)
+        ## Return Format
+        {"success": bool, "segments"?: [...], "vocab"?: [...], "message"?: str,
+         "error"?: str, "error_type"?: str}
 
-        Returns:
-            segments, events chain, or vocabulary list.
+        ## Examples
+        vla_events(operation="vocab")
+        vla_events(operation="segment", samples=[{"timestamp": 0.0, "velocity": 0.5}])
         """
         seg = EventSegmenter()
         if operation == "vocab":
@@ -341,35 +409,36 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_training(
-        operation: Literal[
-            "health",
-            "co_train_prepare",
-            "config_template",
-            "introspect_train_args",
-            "launch_co_train",
-            "job_status",
-            "job_log",
-            "stop_job",
+        operation: Annotated[
+            Literal[
+                "health",
+                "co_train_prepare",
+                "config_template",
+                "introspect_train_args",
+                "launch_co_train",
+                "job_status",
+                "job_log",
+                "stop_job",
+            ],
+            Field(description="DMuon training operation"),
         ],
-        dataset_shard: str | None = None,
-        confirm: bool = False,
-        dry_run: bool = False,
-        job_id: str | None = None,
-        log_offset: int = 0,
-        extra_args: list[str] | None = None,
+        dataset_shard: Annotated[str | None, Field(description="Export shard for training")] = None,
+        confirm: Annotated[bool, Field(description="Must be True to start GPU subprocess (launch_co_train)")] = False,
+        dry_run: Annotated[bool, Field(description="Preview command without launching")] = False,
+        job_id: Annotated[str | None, Field(description="Job id for job_status/job_log/stop_job")] = None,
+        log_offset: Annotated[int, Field(description="Log offset for job_log")] = 0,
+        extra_args: Annotated[list[str] | None, Field(description="Extra CLI args for upstream train script")] = None,
     ) -> dict[str, Any]:
         """VLA_TRAINING - DMuon co-training launch and job tracking.
 
-        Args:
-            operation: health, co_train_prepare, config_template, launch_co_train, job_status, stop_job
-            dataset_shard: Export shard name for training
-            confirm: Must be True to start GPU subprocess (launch_co_train)
-            dry_run: Preview command without launching
-            job_id: Job id for job_status / stop_job
-            extra_args: Extra CLI args forwarded to upstream train script
+        ## Return Format
+        {"success": bool, "job_id"?: str, "status"?: str, "command"?: [...],
+         "message"?: str, "error"?: str}
 
-        Returns:
-            Job ids, log paths, or training prep fields.
+        ## Examples
+        vla_training(operation="health")
+        vla_training(operation="launch_co_train", dataset_shard="train_001", dry_run=True)
+        vla_training(operation="launch_co_train", dataset_shard="train_001", confirm=True)
         """
         runner = DMuonRunner.default()
         if operation == "health":
@@ -401,17 +470,26 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_pipeline(
-        operation: Literal["describe", "run", "last_run"],
-        live: bool = False,
-        shard_name: str | None = None,
-        include_failures: bool = True,
-        room_style: str = "cluttered_indoor",
-        fallback_simulate: bool = True,
-        boomy_demo: str | None = None,
-        boomy_pattern: str = "boomy_b",
-        generate_world: bool | None = None,
+        operation: Annotated[Literal["describe", "run", "last_run"], Field(description="Pipeline operation")],
+        live: Annotated[bool, Field(description="Live fleet loop (default simulate)")] = False,
+        shard_name: Annotated[str | None, Field(description="Export shard name")] = None,
+        include_failures: Annotated[bool, Field(description="Include failure trajectories")] = True,
+        room_style: Annotated[str, Field(description="Room style for generation")] = "cluttered_indoor",
+        fallback_simulate: Annotated[bool, Field(description="Simulate when peers unreachable")] = True,
+        boomy_demo: Annotated[str | None, Field(description="Boomy demo pattern override")] = None,
+        boomy_pattern: Annotated[str, Field(description="Boomy demo pattern")] = "boomy_b",
+        generate_world: Annotated[bool | None, Field(description="Generate world via worldlabs-mcp")] = None,
     ) -> dict[str, Any]:
-        """VLA_PIPELINE - End-to-end loop: fleet → ingest → numpy export → DMuon dry_run."""
+        """VLA_PIPELINE - End-to-end loop: fleet → ingest → numpy export → DMuon dry_run.
+
+        ## Return Format
+        {"success": bool, "run_id"?: str, "summary"?: {...}, "message"?: str, "error"?: str}
+
+        ## Examples
+        vla_pipeline(operation="describe")
+        vla_pipeline(operation="run", live=False)
+        vla_pipeline(operation="last_run")
+        """
         pipe = PipelineRunner.default()
         if operation == "describe":
             return pipe.describe()
@@ -432,15 +510,27 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool(annotations=_READ_ONLY)
     async def vla_fleet(
-        operation: Literal["bridge_status", "scenario_brief", "list_peers", "call_peer"],
-        room_style: str = "cluttered_indoor",
-        include_failures: bool = True,
-        agents: list[str] | None = None,
-        peer: str | None = None,
-        tool_name: str | None = None,
-        arguments: dict[str, Any] | None = None,
+        operation: Annotated[
+            Literal["bridge_status", "scenario_brief", "list_peers", "call_peer"],
+            Field(description="Fleet bridge operation"),
+        ],
+        room_style: Annotated[str, Field(description="Room style for scenario_brief")] = "cluttered_indoor",
+        include_failures: Annotated[bool, Field(description="Include failures in brief")] = True,
+        agents: Annotated[list[str] | None, Field(description="Agents for scenario_brief")] = None,
+        peer: Annotated[str | None, Field(description="Peer name for call_peer")] = None,
+        tool_name: Annotated[str | None, Field(description="Tool name for call_peer")] = None,
+        arguments: Annotated[dict[str, Any] | None, Field(description="Tool args for call_peer")] = None,
     ) -> dict[str, Any]:
-        """VLA_FLEET - Simulation peers and REST tool bridge."""
+        """VLA_FLEET - Simulation peers and REST tool bridge.
+
+        ## Return Format
+        {"success": bool, "peers"?: {...}, "brief"?: {...}, "result"?: {...},
+         "message"?: str, "error"?: str}
+
+        ## Examples
+        vla_fleet(operation="list_peers")
+        vla_fleet(operation="scenario_brief")
+        """
         bridge = FleetBridge.default()
         if operation == "list_peers":
             return {"success": True, "peers": bridge.peer_urls()}
@@ -460,17 +550,19 @@ def build_mcp() -> FastMCP:
 
     @mcp.tool()
     async def vla_world(
-        operation: Literal["describe", "generate"],
-        prompt: str = "cluttered indoor room with a table, chairs, and scattered objects",
+        operation: Annotated[Literal["describe", "generate"], Field(description="describe or generate")],
+        prompt: Annotated[str, Field(description="Scene description for the room generator")] = (
+            "cluttered indoor room with a table, chairs, and scattered objects"
+        ),
     ) -> dict[str, Any]:
         """VLA_WORLD - Generate a navigable 3D room via worldlabs-mcp; returns the Marble viewer URL.
 
-        Args:
-            operation: describe (config + peer) or generate (create a 3D world from prompt)
-            prompt: Scene description for the room generator
+        ## Return Format
+        {"success": bool, "peer"?: str, "viewer_url"?: str, "message"?: str, "error"?: str}
 
-        Returns:
-            describe metadata, or generate result with viewer_url when worldlabs-mcp is reachable.
+        ## Examples
+        vla_world(operation="describe")
+        vla_world(operation="generate", prompt="cluttered workshop")
         """
         bridge = FleetBridge.default()
         cfg = get_config()
@@ -496,10 +588,18 @@ def build_mcp() -> FastMCP:
     @mcp.tool()
     async def vla_agentic_workflow(
         ctx: Context,
-        goal: str,
-        max_steps: int = 10,
+        goal: Annotated[str, Field(description="Planning goal for the VLA session")],
+        max_steps: Annotated[int, Field(description="Maximum plan steps")] = 10,
     ) -> dict[str, Any]:
-        """VLA_AGENTIC_WORKFLOW - Multi-step VLA + world-model session planning."""
+        """VLA_AGENTIC_WORKFLOW - Multi-step VLA + world-model session planning.
+
+        ## Return Format
+        {"success": bool, "goal": str, "plan"?: str, "fallback_steps": [...],
+         "sampling_available": bool, "message": str}
+
+        ## Examples
+        vla_agentic_workflow(goal="collect failure trajectories and dry-run co-training")
+        """
         fallback_steps = [
             "vla_weights(operation='list_models')",
             "vla_fleet(operation='scenario_brief', include_failures=True)",
@@ -533,14 +633,20 @@ def build_mcp() -> FastMCP:
     from .help_content import get_help
 
     @mcp.tool()
-    async def vla_help(topic: str | None = None) -> dict[str, Any]:
+    async def vla_help(
+        topic: Annotated[str | None, Field(description="Help section id, or omit for overview + topic list")] = None,
+    ) -> dict[str, Any]:
         """VLA_HELP - Fleet integration, API keys, tools, and setup documentation.
 
         Call with no topic for index. Topics: fleet_integration, api_keys, tools,
         configuration, setup, troubleshooting, architecture, prd.
 
-        Args:
-            topic: Help section id, or omit for overview + topic list.
+        ## Return Format
+        {"success": bool, "topics"?: [...], "markdown"?: str, "error"?: str}
+
+        ## Examples
+        vla_help()
+        vla_help(topic="tools")
         """
         return get_help(topic)
 

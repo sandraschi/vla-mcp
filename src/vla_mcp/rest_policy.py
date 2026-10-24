@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-# Tools that cannot be invoked via generic REST (need MCP Context).
-REST_BLOCKED_TOOLS = frozenset({"vla_agentic_workflow"})
+# Tools that cannot be invoked via generic REST (need MCP Context, or are terminal).
+REST_BLOCKED_TOOLS = frozenset({"vla_agentic_workflow", "vla_shutdown"})
 
 # Operations that mutate external state; require X-VLA-Confirm: 1 header.
 REST_MUTATING: dict[str, frozenset[str]] = {

@@ -317,3 +317,239 @@ def setup_webapp(
         _task = asyncio.create_task(_exit_later())
         _task.set_name("vla-shutdown")
         return JSONResponse({"success": True, "message": "vla-mcp shutting down"})
+
+    @app.get("/api/skills")
+    async def api_skills() -> dict:
+        """Skill-first chat preprompt source: bundled domain skills."""
+        skills: list[dict[str, Any]] = [
+            {
+                "uri": "resource://vla/quickstart",
+                "name": "vla-quickstart",
+                "description": "VLA-MCP quickstart: status, fleet brief, ingest, export, DMuon.",
+            }
+        ]
+        skill_file = _repo_root() / "src" / "vla_mcp" / "skills" / "vla-expert" / "SKILL.md"
+        if skill_file.is_file():
+            skills.append(
+                {
+                    "uri": "skill://vla-expert/SKILL.md",
+                    "name": "vla-expert",
+                    "description": "VLA co-training with Wall-OSS-0.5, WALL-WM, and fleet loops.",
+                    "content": skill_file.read_text(encoding="utf-8"),
+                }
+            )
+        return {"skills": skills}
+
+    @app.get("/api/llm/discover")
+    async def api_llm_discover() -> dict:
+        """Probe local LLM providers (Ollama :11434, LM Studio :1234)."""
+        import httpx as _httpx
+
+        providers: list[dict[str, Any]] = []
+        async with _httpx.AsyncClient(timeout=2.0) as client:
+            for pid, label, base in (
+                ("ollama", "Ollama (local, free)", "http://127.0.0.1:11434"),
+                ("lmstudio", "LM Studio (local, free)", "http://127.0.0.1:1234"),
+            ):
+                detected = False
+                try:
+                    path = "/api/tags" if pid == "ollama" else "/v1/models"
+                    resp = await client.get(base + path)
+                    detected = resp.status_code == 200
+                except Exception:
+                    detected = False
+                providers.append({"id": pid, "label": label, "detected": detected, "base_url": base})
+        return {"providers": providers}
+
+    @app.get("/api/llm/providers")
+    async def api_llm_providers() -> dict:
+        """Local detected flags + cloud configured flags (never key bytes)."""
+        import os as _os
+
+        discovered = await api_llm_discover()
+        providers = discovered["providers"]
+        clouds = [
+            {"id": "openai", "label": "OpenAI (cloud, paid)", "configured": bool(_os.getenv("OPENAI_API_KEY"))},
+            {
+                "id": "anthropic",
+                "label": "Anthropic (cloud, paid)",
+                "configured": bool(_os.getenv("ANTHROPIC_API_KEY")),
+            },
+        ]
+        return {"providers": providers, "cloud": clouds}
+
+    @app.get("/api/llm/models")
+    async def api_llm_models(provider: str = "ollama") -> dict:
+        """Model list per provider: live when reachable, curated fallback otherwise."""
+        import httpx as _httpx
+
+        fallback = {
+            "ollama": ["qwen3:8b", "llama3.1:8b", "mistral:7b"],
+            "lmstudio": ["local-model"],
+        }
+        base = "http://127.0.0.1:11434" if provider == "ollama" else "http://127.0.0.1:1234"
+        path = "/api/tags" if provider == "ollama" else "/v1/models"
+        models: list[str] = []
+        try:
+            async with _httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.get(base + path)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if provider == "ollama":
+                        models = [m.get("name") for m in data.get("models", []) if m.get("name")]
+                    else:
+                        models = [m.get("id") for m in data.get("data", []) if m.get("id")]
+                    if models:
+                        return {"provider": provider, "models": models, "live": True}
+        except Exception:
+            models = []
+        return {"provider": provider, "models": fallback.get(provider, []), "live": False}
+
+    @app.get("/api/llm/onboarding")
+    async def api_llm_onboarding() -> dict:
+        """Fresh-install starter facts + recommended path for the under-hero cue."""
+        discovered = await api_llm_discover()
+        detected = [p["id"] for p in discovered["providers"] if p["detected"]]
+        if detected:
+            path = f"Chat works now via {detected[0]}. Pick a model in Settings."
+        else:
+            path = "Install Ollama (https://ollama.me) and pull qwen3:8b, then chat here for free."
+        return {
+            "detected": detected,
+            "mock": not detected,
+            "recommended_path": path,
+            "facts": [
+                "vla-mcp is a training-pipeline bridge; chat answers VLA/fleet questions.",
+                "DMuon launches and weight downloads are confirm-gated and never auto-run.",
+                "Keys never leave this server: chat goes through POST /api/llm/chat.",
+            ],
+        }
+
+    @app.post("/api/llm/chat")
+    async def api_llm_chat(request: Request) -> Any:
+        """Backend chat proxy — the ONLY path Chat uses. Keys never leave the server."""
+        import httpx as _httpx
+
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        provider = str(body.get("provider") or "ollama")
+        model = str(body.get("model") or "")
+        messages = body.get("messages") or []
+        if not messages:
+            raise HTTPException(status_code=422, detail="messages required")
+        try:
+            async with _httpx.AsyncClient(timeout=120.0) as client:
+                if provider == "lmstudio":
+                    resp = await client.post(
+                        "http://127.0.0.1:1234/v1/chat/completions",
+                        json={"model": model or "local-model", "messages": messages},
+                    )
+                    if resp.status_code != 200:
+                        raise HTTPException(status_code=502, detail="LM Studio unreachable")
+                    data = resp.json()
+                    text = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
+                    return {"success": True, "provider": provider, "model": model, "text": text}
+                resp = await client.post(
+                    "http://127.0.0.1:11434/api/chat",
+                    json={"model": model or "qwen3:8b", "messages": messages, "stream": False},
+                )
+                if resp.status_code != 200:
+                    raise HTTPException(
+                        status_code=502,
+                        detail="Ollama unreachable - start Ollama or pick LM Studio in Settings",
+                    )
+                data = resp.json()
+                text = data.get("message", {}).get("content", "")
+                return {"success": True, "provider": provider, "model": model, "text": text}
+        except HTTPException:
+            raise
+        except Exception as exc:
+            raise HTTPException(status_code=502, detail=f"LLM provider error: {exc}") from exc
+
+    @app.post("/api/llm/chat/stream")
+    async def api_llm_chat_stream(request: Request) -> StreamingResponse:
+        """Streaming backend chat proxy (SSE, OpenAI-style chunks)."""
+        import httpx as _httpx
+
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        provider = str(body.get("provider") or "ollama")
+        model = str(body.get("model") or "")
+        messages = body.get("messages") or []
+
+        async def event_stream():
+            try:
+                async with _httpx.AsyncClient(timeout=120.0) as client:
+                    if provider == "lmstudio":
+                        async with client.stream(
+                            "POST",
+                            "http://127.0.0.1:1234/v1/chat/completions",
+                            json={
+                                "model": model or "local-model",
+                                "messages": messages,
+                                "stream": True,
+                            },
+                        ) as resp:
+                            async for line in resp.aiter_lines():
+                                if line.startswith("data:"):
+                                    yield line + "\n\n"
+                    else:
+                        async with client.stream(
+                            "POST",
+                            "http://127.0.0.1:11434/api/chat",
+                            json={
+                                "model": model or "qwen3:8b",
+                                "messages": messages,
+                                "stream": True,
+                            },
+                        ) as resp:
+                            async for line in resp.aiter_lines():
+                                if not line.strip():
+                                    continue
+                                try:
+                                    chunk = json.loads(line)
+                                except Exception:
+                                    chunk = None
+                                if chunk is None:
+                                    continue
+                                text = chunk.get("message", {}).get("content", "")
+                                done = chunk.get("done", False)
+                                yield f"data: {json.dumps({'text': text, 'done': done})}\n\n"
+                                if done:
+                                    break
+            except Exception as exc:
+                yield f"data: {json.dumps({'error': str(exc)})}\n\n"
+
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    @app.get("/api/v1/diagnostics")
+    async def api_diagnostics() -> dict:
+        """Full diagnostics for CUA-NSIS smoke testing: tools, system, errors."""
+        import platform as _platform
+        import sys as _sys
+
+        tools: list[dict[str, str]] = []
+        for name in sorted(all_tools.keys()):
+            fn = all_tools[name]
+            doc = (fn.__doc__ or "").strip().splitlines()
+            tools.append({"name": name, "summary": doc[0] if doc else ""})
+        return {
+            "server": "vla-mcp",
+            "version": mcp.version,
+            "python": _sys.version.split()[0],
+            "platform": _platform.platform(),
+            "uptime_s": round(time.time() - _START, 1),
+            "tool_count": len(tools),
+            "tools": tools,
+            "ports": {"backend": get_config().api_port, "frontend": get_config().frontend_port},
+        }

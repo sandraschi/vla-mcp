@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastmcp import FastMCP
+from pydantic import Field
 
 from ..engine.notebook_store import NOTEBOOKS, NotebookStore
 from ..integrations.aiwatcher import fetch_fleet_items
@@ -62,18 +63,21 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
 
     @mcp.tool()
     async def vla_diary(
-        operation: Literal["log", "list", "get", "delete", "news", "status", "summary"],
-        notebook: str = "dev",
-        category: str | None = None,
-        title: str | None = None,
-        body: str | None = None,
-        author: str | None = None,
-        tags: list[str] | None = None,
-        metrics: dict[str, Any] | None = None,
-        entry_id: str | None = None,
-        confirm: bool = False,
-        limit: int = 50,
-        offset: int = 0,
+        operation: Annotated[
+            Literal["log", "list", "get", "delete", "news", "status", "summary"],
+            Field(description="Diary operation"),
+        ],
+        notebook: Annotated[str, Field(description="personal, dev, or news")] = "dev",
+        category: Annotated[str | None, Field(description="repo_fix, tool_install, blooper, decision, note")] = None,
+        title: Annotated[str | None, Field(description="Entry title for log")] = None,
+        body: Annotated[str | None, Field(description="Entry body for log")] = None,
+        author: Annotated[str | None, Field(description="Entry author (defaults agent:opencode)")] = None,
+        tags: Annotated[list[str] | None, Field(description='Tags, always include "repo:{name}"')] = None,
+        metrics: Annotated[dict[str, Any] | None, Field(description="Structured gate evidence JSON")] = None,
+        entry_id: Annotated[str | None, Field(description="Entry id for get/delete")] = None,
+        confirm: Annotated[bool, Field(description="Required True for delete")] = False,
+        limit: Annotated[int, Field(description="Page size for list")] = 50,
+        offset: Annotated[int, Field(description="Offset for list")] = 0,
     ) -> dict[str, Any]:
         """VLA_DIARY - Three persistent notebooks: personal diary, dev diary, news diary.
 
