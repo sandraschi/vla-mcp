@@ -78,7 +78,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 			>
 				<div className="p-3 border-b border-gray-800 flex items-center gap-2">
 					<Brain size={20} className="text-violet-400 shrink-0" />
-					{!collapsed && <span className="font-semibold text-sm">VLA-MCP</span>}
+					{!collapsed && (
+						<span
+							className="font-semibold text-sm"
+							title="Vision-Language-Action bridge"
+						>
+							VLA Bridge
+						</span>
+					)}
 				</div>
 				<button
 					type="button"

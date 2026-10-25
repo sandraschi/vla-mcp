@@ -1,4 +1,4 @@
-# vla-mcp ⚠️ Alpha — Preemptive Infrastructure
+# vla-mcp — Vision-Language-Action bridge (Alpha - Preemptive Infrastructure)
 
 **Status: Alpha / Shelfware.** This server was scaffolded as infrastructure for a future robotics training pipeline. It has never been used in production. No robots have been trained with it. It exists so that when someone collects teleoperation demos and runs DMuon training, the bridge is ready. Until then it's preemptive — not broken, just waiting.
 

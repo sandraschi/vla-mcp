@@ -74,6 +74,19 @@
   the canonical Tauri root. Fixed `scripts/cua-smoke.py` `NSIS_GLOB` fallback default
   (pointed at a `web_sota/src-tauri` template path; live config already used `native/`).
 
+### Fixed (round 8, 2026-10-25 — help/skills flattening, scrollbars, naming)
+- Fleet Integration help tab: was dense jargon paragraphs; now a flat peer table
+  (peer / default URL / role, link to live Fleet page) plus the aiwatcher + MCP lines.
+- Skills page: was cards containing scrollable code boxes; now flat rows with native
+  collapsible content, no nested boxes or scrollbars.
+- One scrollbar rule: removed inner vertical scrollers everywhere except the chat
+  transcript and the Logger modal (overlay) — Dataset list, Help/Log/Training pres
+  now flow with the page.
+- Naming: the repo + package stay `vla-mcp`/`vla_mcp` (renaming would break URLs,
+  clones, imports, ports registry, bundle IDs, client configs for zero functional
+  gain); the human-facing surfaces now spell it out — README title, browser tab,
+  sidebar label ("VLA Bridge"), dashboard hero, help, Discord pins.
+
 ### Fixed (round 7, 2026-10-25 - inbox hang)
 - Root cause, measured: each dead fleet peer burned ~8.5s (4 health paths x ~2s
   Windows refused-loopback stalls), `Promise.all` gated the fast last-run row
