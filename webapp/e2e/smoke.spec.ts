@@ -26,7 +26,7 @@ test("backend health is reachable through the vite proxy", async ({
 	expect(body.server).toBe("vla-mcp");
 });
 
-test("nav walk: chat, skills, and help pages render", async ({ page }) => {
+test("nav walk: chat, skills, help, and inbox pages render", async ({ page }) => {
 	await page.goto("/chat");
 	await expect(page.getByTestId("chat-page")).toBeVisible();
 	await page.goto("/skills");
@@ -38,6 +38,11 @@ test("nav walk: chat, skills, and help pages render", async ({ page }) => {
 		page.getByText("Why does this exist if no robot has been trained?"),
 	).toBeVisible();
 	await page.getByRole("button", { name: "Models" }).click();
-	await expect(page.getByText("Wall-OSS-0.5", { exact: true }).first()).toBeVisible();
+	await expect(
+		page.getByText("Wall-OSS-0.5", { exact: true }).first(),
+	).toBeVisible();
 	await expect(page.getByText("DMuon", { exact: true }).first()).toBeVisible();
+	await page.goto("/inbox");
+	await expect(page.getByTestId("inbox-page")).toBeVisible();
+	await expect(page.getByTestId("search-inbox")).toBeVisible();
 });

@@ -74,7 +74,21 @@
   the canonical Tauri root. Fixed `scripts/cua-smoke.py` `NSIS_GLOB` fallback default
   (pointed at a `web_sota/src-tauri` template path; live config already used `native/`).
 
-### Fixed (round 6, 2026-10-25 — dashboard hero + help page theme)
+### Fixed (round 7, 2026-10-25 - inbox hang)
+- Root cause, measured: each dead fleet peer burned ~8.5s (4 health paths x ~2s
+  Windows refused-loopback stalls), `Promise.all` gated the fast last-run row
+  behind the slow liveness call, and `fetch` had no timeout - infinite spinner
+  in the worst case.
+- Backend: per-peer 6s + total 10s probe deadlines with partial results
+  (`bridge_status`), aiwatcher check now concurrent with peer probes, 20s
+  overall probe budget with graceful degradation (`pipeline_liveness`).
+- Frontend: 30s default fetch timeout with clear timeout errors (`api.ts`);
+  Inbox loads last-run + liveness independently and paints immediately with an
+  inline "probing fleet peers" row instead of a full-page spinner.
+- Tests: hanging-probe deadline tests for `bridge_status` and the liveness
+  budget; e2e nav-walk covers /inbox. 62 passed.
+
+### Fixed (round 6, 2026-10-25 - dashboard hero + help page theme)
 - Dashboard hero: gradient banner with backend live/offline pill, version badge,
   headline, subcopy, and CTAs (Run E2E pipeline / Open Chat / Browse weights);
   subcopy rewritten in plain words (no jargon soup).

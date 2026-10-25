@@ -41,7 +41,7 @@ class FleetBridge:
         if not url:
             return {"name": name, "reachable": False, "error": "URL not configured"}
         health_paths = ("/api/status", "/api/v1/status", "/health", "/")
-        async with httpx.AsyncClient(timeout=3.0) as client:
+        async with httpx.AsyncClient(timeout=2.0) as client:
             for path in health_paths:
                 try:
                     r = await client.get(f"{url.rstrip('/')}{path}")
@@ -51,9 +51,41 @@ class FleetBridge:
                     continue
         return {"name": name, "url": url, "reachable": False, "error": "No health endpoint responded"}
 
-    async def bridge_status(self) -> dict:
+    async def _probe_peer_bounded(self, name: str, url: str | None, timeout: float) -> dict:
+        """Probe one peer, never exceeding `timeout` (slow/black-holed hosts)."""
+        try:
+            return await asyncio.wait_for(self.probe_peer(name, url), timeout=timeout)
+        except (TimeoutError, asyncio.CancelledError):
+            return {
+                "name": name,
+                "url": url,
+                "reachable": False,
+                "error": f"probe deadline exceeded ({timeout:g}s)",
+            }
+
+    async def bridge_status(self, peer_timeout: float = 6.0, total_timeout: float = 10.0) -> dict:
         peers = self.peer_urls()
-        results = await asyncio.gather(*[self.probe_peer(name, url) for name, url in peers.items()])
+        tasks = [
+            asyncio.ensure_future(self._probe_peer_bounded(name, url, peer_timeout)) for name, url in peers.items()
+        ]
+        try:
+            results = await asyncio.wait_for(asyncio.gather(*tasks), timeout=total_timeout)
+        except (TimeoutError, asyncio.CancelledError):
+            # Keep whatever finished; mark the stragglers unreachable.
+            results = []
+            for task, (name, url) in zip(tasks, peers.items(), strict=True):
+                if task.done() and not task.cancelled():
+                    results.append(task.result())
+                else:
+                    task.cancel()
+                    results.append(
+                        {
+                            "name": name,
+                            "url": url,
+                            "reachable": False,
+                            "error": f"probe deadline exceeded ({total_timeout:g}s total)",
+                        }
+                    )
         return {
             "success": True,
             "peers": list(results),

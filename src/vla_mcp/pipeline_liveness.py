@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -37,6 +38,51 @@ def _latest_pipeline_age_hours(dataset_root: str) -> tuple[float | None, str | N
 
 # 60s result cache - peer probes are slow when robots are offline, and supervisors poll often
 _LIVENESS_CACHE: dict[str, Any] = {"ts": 0.0, "data": None}
+
+# Overall probe-phase budget (peers + aiwatcher run concurrently). Without this,
+# a black-holed host (no RST, DNS stall) hangs supervisors with no timeout.
+_PROBE_BUDGET_S = 20.0
+
+
+async def _check_aiwatcher(base: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Probe aiwatcher health; returns (checks, alerts) fragments."""
+    checks: list[dict[str, Any]] = []
+    alerts: list[dict[str, Any]] = []
+    base = base.strip()
+    if not base:
+        return checks, alerts
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{base.rstrip('/')}/api/health")
+        ok = resp.status_code == 200
+        checks.append(
+            {
+                "name": "aiwatcher_health",
+                "ok": ok,
+                "url": base,
+                "status_code": resp.status_code,
+            }
+        )
+        if not ok:
+            alerts.append(
+                {
+                    "severity": "warning",
+                    "code": "AIWATCHER_UNHEALTHY",
+                    "message": f"aiwatcher health check failed ({resp.status_code})",
+                    "detail": {"url": base},
+                }
+            )
+    except httpx.HTTPError as exc:
+        checks.append({"name": "aiwatcher_health", "ok": False, "url": base})
+        alerts.append(
+            {
+                "severity": "warning",
+                "code": "AIWATCHER_UNREACHABLE",
+                "message": f"Cannot reach aiwatcher at {base}: {exc}",
+                "detail": {"url": base},
+            }
+        )
+    return checks, alerts
 
 
 async def check_pipeline_liveness(
@@ -89,7 +135,22 @@ async def check_pipeline_liveness(
             )
 
     bridge = FleetBridge(config=cfg)
-    peer_status = await bridge.bridge_status()
+    base = (cfg.aiwatcher_base_url or "").strip()
+    try:
+        peer_status, (aiw_checks, aiw_alerts) = await asyncio.wait_for(
+            asyncio.gather(bridge.bridge_status(), _check_aiwatcher(base)),
+            timeout=_PROBE_BUDGET_S,
+        )
+    except (TimeoutError, asyncio.CancelledError):
+        peer_status = {"peers": []}
+        aiw_checks = [
+            {
+                "name": "liveness_probe",
+                "ok": False,
+                "error": f"probe budget exceeded ({_PROBE_BUDGET_S:g}s)",
+            }
+        ]
+        aiw_alerts = []
     for peer in peer_status.get("peers") or []:
         name = peer.get("name", "?")
         reachable = bool(peer.get("reachable"))
@@ -110,40 +171,8 @@ async def check_pipeline_liveness(
                     "detail": {"peer": name, "error": peer.get("error")},
                 }
             )
-
-    base = (cfg.aiwatcher_base_url or "").strip()
-    if base:
-        try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                resp = await client.get(f"{base.rstrip('/')}/api/health")
-            ok = resp.status_code == 200
-            checks.append(
-                {
-                    "name": "aiwatcher_health",
-                    "ok": ok,
-                    "url": base,
-                    "status_code": resp.status_code,
-                }
-            )
-            if not ok:
-                alerts.append(
-                    {
-                        "severity": "warning",
-                        "code": "AIWATCHER_UNHEALTHY",
-                        "message": f"aiwatcher health check failed ({resp.status_code})",
-                        "detail": {"url": base},
-                    }
-                )
-        except httpx.HTTPError as exc:
-            checks.append({"name": "aiwatcher_health", "ok": False, "url": base})
-            alerts.append(
-                {
-                    "severity": "warning",
-                    "code": "AIWATCHER_UNREACHABLE",
-                    "message": f"Cannot reach aiwatcher at {base}: {exc}",
-                    "detail": {"url": base},
-                }
-            )
+    checks.extend(aiw_checks)
+    alerts.extend(aiw_alerts)
 
     critical = [a for a in alerts if a.get("severity") == "critical"]
     healthy = len(critical) == 0

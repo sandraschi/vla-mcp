@@ -3,68 +3,145 @@ import { apiGet } from "../lib/api";
 
 type Item = { kind: string; title: string; detail: string };
 
+type LiveState =
+	| { status: "pending" }
+	| {
+			status: "ok";
+			alerts: string[];
+			checks: { name: string; ok: boolean; detail?: string }[];
+	  }
+	| { status: "error"; message: string };
+
 export default function InboxPage() {
 	const [items, setItems] = useState<Item[]>([]);
+	const [live, setLive] = useState<LiveState>({ status: "pending" });
+	const [liveError, setLiveError] = useState<string | null>(null);
+	const [runError, setRunError] = useState<string | null>(null);
 	const [query, setQuery] = useState("");
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 
-	function load() {
-		setLoading(true);
-		setError(null);
-		Promise.all([
-			apiGet<{
-				alerts?: string[];
-				checks?: { name: string; ok: boolean; detail?: string }[];
-			}>("/api/pipeline/liveness"),
-			apiGet<{
-				success?: boolean;
-				run_id?: string;
-				summary?: Record<string, unknown>;
-			}>("/api/v1/pipeline/last"),
-		])
-			.then(([live, last]) => {
-				const rows: Item[] = [];
-				for (const a of live.alerts ?? [])
-					rows.push({ kind: "alert", title: a, detail: "" });
-				for (const c of live.checks ?? [])
-					rows.push({
-						kind: c.ok ? "check-ok" : "check-fail",
-						title: c.name,
-						detail: c.detail ?? "",
-					});
+	// The last run answers in ~0.3s; fleet probes can take seconds when peers
+	// are offline. Load independently so the page paints immediately and the
+	// peer rows stream in instead of blocking everything on the slowest call.
+	useEffect(() => {
+		let cancelled = false;
+		apiGet<{
+			success?: boolean;
+			run_id?: string;
+			summary?: Record<string, unknown>;
+		}>("/api/v1/pipeline/last")
+			.then((last) => {
+				if (cancelled) return;
 				if (last.run_id)
-					rows.push({
-						kind: "run",
-						title: `Last run ${last.run_id}`,
-						detail: JSON.stringify(last.summary ?? {}),
-					});
-				if (rows.length === 0)
-					rows.push({
-						kind: "empty",
-						title: "All quiet",
-						detail: "No alerts, no runs yet.",
-					});
-				setItems(rows);
+					setItems([
+						{
+							kind: "run",
+							title: `Last run ${last.run_id}`,
+							detail: JSON.stringify(last.summary ?? {}),
+						},
+					]);
 			})
-			.catch((e) => setError(e instanceof Error ? e.message : "load failed"))
-			.finally(() => setLoading(false));
-	}
+			.catch((e) => {
+				if (!cancelled)
+					setRunError(e instanceof Error ? e.message : "load failed");
+			});
+		apiGet<{
+			alerts?: string[];
+			checks?: { name: string; ok: boolean; detail?: string }[];
+		}>("/api/pipeline/liveness")
+			.then((d) => {
+				if (cancelled) return;
+				setLive({
+					status: "ok",
+					alerts: d.alerts ?? [],
+					checks: d.checks ?? [],
+				});
+			})
+			.catch((e) => {
+				if (cancelled) return;
+				setLive({ status: "error", message: "" });
+				setLiveError(e instanceof Error ? e.message : "load failed");
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 
-	useEffect(load, []);
+	const liveRows: Item[] = useMemo(() => {
+		if (live.status !== "ok") return [];
+		const rows: Item[] = [];
+		for (const a of live.alerts)
+			rows.push({ kind: "alert", title: a, detail: "" });
+		for (const c of live.checks)
+			rows.push({
+				kind: c.ok ? "check-ok" : "check-fail",
+				title: c.name,
+				detail: c.detail ?? "",
+			});
+		return rows;
+	}, [live]);
+
+	const all = useMemo(() => {
+		const rows = [...items, ...liveRows];
+		if (rows.length === 0 && live.status === "ok")
+			return [
+				{
+					kind: "empty",
+					title: "All quiet",
+					detail: "No alerts, no runs yet.",
+				},
+			];
+		return rows;
+	}, [items, liveRows, live.status]);
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
-		const sorted = [...items].sort((a, b) => a.kind.localeCompare(b.kind));
+		const sorted = [...all].sort((a, b) => a.kind.localeCompare(b.kind));
 		if (!q) return sorted;
 		return sorted.filter(
 			(i) =>
 				i.title.toLowerCase().includes(q) || i.detail.toLowerCase().includes(q),
 		);
-	}, [items, query]);
+	}, [all, query]);
 
-	if (loading)
-		return <div className="text-sm text-gray-400">Loading inbox…</div>;
+	function reload() {
+		setLive({ status: "pending" });
+		setLiveError(null);
+		setRunError(null);
+		setItems([]);
+		apiGet<{
+			success?: boolean;
+			run_id?: string;
+			summary?: Record<string, unknown>;
+		}>("/api/v1/pipeline/last")
+			.then((last) => {
+				if (last.run_id)
+					setItems([
+						{
+							kind: "run",
+							title: `Last run ${last.run_id}`,
+							detail: JSON.stringify(last.summary ?? {}),
+						},
+					]);
+			})
+			.catch((e) =>
+				setRunError(e instanceof Error ? e.message : "load failed"),
+			);
+		apiGet<{
+			alerts?: string[];
+			checks?: { name: string; ok: boolean; detail?: string }[];
+		}>("/api/pipeline/liveness")
+			.then((d) =>
+				setLive({
+					status: "ok",
+					alerts: d.alerts ?? [],
+					checks: d.checks ?? [],
+				}),
+			)
+			.catch((e) => {
+				setLive({ status: "error", message: "" });
+				setLiveError(e instanceof Error ? e.message : "load failed");
+			});
+	}
 
 	return (
 		<div data-testid="inbox-page">
@@ -79,22 +156,25 @@ export default function InboxPage() {
 				placeholder="Search inbox…"
 				className="w-full max-w-md bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm text-gray-100 mb-4"
 			/>
-			{error && (
+			{(runError || liveError) && (
 				<div className="text-sm text-red-400 mb-4">
-					{error}{" "}
-					<button onClick={load} className="underline">
+					{[runError, liveError].filter(Boolean).join(" · ")}{" "}
+					<button onClick={reload} className="underline">
 						Retry
 					</button>
 				</div>
 			)}
-			{!error && filtered.length === 0 && (
-				<div className="text-sm text-gray-400">
-					No items match “{query}”.{" "}
-					<button onClick={() => setQuery("")} className="underline">
-						Clear search
-					</button>
-				</div>
-			)}
+			{!runError &&
+				!liveError &&
+				filtered.length === 0 &&
+				live.status === "ok" && (
+					<div className="text-sm text-gray-400">
+						No items match “{query}”.{" "}
+						<button onClick={() => setQuery("")} className="underline">
+							Clear search
+						</button>
+					</div>
+				)}
 			<div className="space-y-2">
 				{filtered.map((i) => (
 					<div
@@ -122,9 +202,18 @@ export default function InboxPage() {
 						)}
 					</div>
 				))}
+				{live.status === "pending" && (
+					<div
+						data-testid="inbox-probing"
+						className="bg-gray-900 border border-gray-800 rounded-lg p-3 text-sm text-gray-400"
+					>
+						<span className="inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse mr-2" />
+						Probing fleet peers — rows appear as they answer…
+					</div>
+				)}
 			</div>
 			<div className="text-sm text-gray-400 mt-3">
-				{filtered.length} of {items.length} items
+				{filtered.length} of {all.length} items
 			</div>
 		</div>
 	);
