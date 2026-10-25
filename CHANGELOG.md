@@ -68,6 +68,12 @@
   diagnostics); pytest 60 passed, coverage 58.7%; e2e 3/3 on final tree.
 - Re-packed 85 KB bundle + re-uploaded release assets (current code).
 
+### Fixed (round 5, 2026-10-25 — duplicate Tauri root)
+- Deleted stale `src-tauri/` duplicate (12 tracked files: old `build.ps1`, `hooks.nsh`
+  without client registration, `backend.rs.template` leftover, `.bak`); `native/` is
+  the canonical Tauri root. Fixed `scripts/cua-smoke.py` `NSIS_GLOB` fallback default
+  (pointed at a `web_sota/src-tauri` template path; live config already used `native/`).
+
 ## [0.3.1b1] - 2026-08-06
 
 ### Added
