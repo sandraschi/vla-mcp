@@ -27,6 +27,11 @@ export function useZoom() {
 		}
 	}, []);
 
+	const reset = useCallback(() => {
+		setZoomIndex(0);
+		applyZoom(1.0);
+	}, [applyZoom]);
+
 	useEffect(() => {
 		const handler = (e: WheelEvent) => {
 			if (!e.ctrlKey) return;
@@ -41,8 +46,21 @@ export function useZoom() {
 			});
 		};
 		window.addEventListener("wheel", handler, { passive: false });
+		const keyHandler = (e: KeyboardEvent) => {
+			if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+				e.preventDefault();
+				setZoomIndex(0);
+				applyZoom(1.0);
+			}
+		};
+		window.addEventListener("keydown", keyHandler);
 		const saved = localStorage.getItem("tauri-zoom");
 		if (saved) applyZoom(parseFloat(saved));
-		return () => window.removeEventListener("wheel", handler);
+		return () => {
+			window.removeEventListener("wheel", handler);
+			window.removeEventListener("keydown", keyHandler);
+		};
 	}, [applyZoom]);
+
+	return { reset, level: ZOOM_LEVELS[zoomIndex] ?? 1.0 };
 }

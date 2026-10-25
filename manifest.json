@@ -39,6 +39,7 @@
     { "name": "vla_world", "description": "3D room generation via worldlabs-mcp" },
     { "name": "vla_diary", "description": "Personal/dev/news notebooks: log, list, get, delete, news, status, summary" },
     { "name": "vla_agentic_workflow", "description": "Multi-step VLA planning" },
-    { "name": "vla_help", "description": "Fleet integration, API keys, tools, troubleshooting" }
+    { "name": "vla_help", "description": "Fleet integration, API keys, tools, troubleshooting" },
+    { "name": "vla_shutdown", "description": "Orderly self-termination" }
   ]
 }

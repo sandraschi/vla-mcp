@@ -29,6 +29,7 @@ export default function Dashboard() {
 		detected: string[];
 		mock: boolean;
 		recommended_path: string;
+		gpu_present: boolean;
 	} | null>(null);
 
 	useEffect(() => {
@@ -44,6 +45,7 @@ export default function Dashboard() {
 			detected: string[];
 			mock: boolean;
 			recommended_path: string;
+			gpu_present: boolean;
 		}>("/api/llm/onboarding")
 			.then(setOnboarding)
 			.catch(() => {});
@@ -63,6 +65,14 @@ export default function Dashboard() {
 		},
 		{ label: "Tools", value: String(tools.length), icon: Download },
 	];
+	const showMock = onboarding?.mock === true && !status;
+	const mockCards = [
+		{ label: "Server", value: "vla-mcp", icon: Activity },
+		{ label: "Version", value: "0.3.1b1", icon: Brain },
+		{ label: "Episodes", value: "12", icon: Boxes },
+		{ label: "Tools", value: "18", icon: Download },
+	];
+	const visibleCards = showMock ? mockCards : cards;
 
 	const features = (caps?.features as Record<string, boolean>) ?? {};
 
@@ -94,7 +104,7 @@ export default function Dashboard() {
 			)}
 
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-				{cards.map(({ label, value, icon: Icon }) => (
+				{visibleCards.map(({ label, value, icon: Icon }) => (
 					<div
 						key={label}
 						className="bg-gray-900 border border-gray-800 rounded-lg p-4"
@@ -102,6 +112,11 @@ export default function Dashboard() {
 						<div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
 							<Icon size={14} className="text-violet-400" />
 							{label}
+							{showMock && (
+								<span className="ml-auto text-sm px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-300">
+									MOCK
+								</span>
+							)}
 						</div>
 						<div className="text-xl font-mono text-gray-100">{value}</div>
 					</div>

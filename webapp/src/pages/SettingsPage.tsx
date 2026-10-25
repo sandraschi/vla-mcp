@@ -22,6 +22,7 @@ export default function SettingsPage() {
 	const setDetected = useLlm((s) => s.setDetected);
 	const setGpuNote = useLlm((s) => s.setGpuNote);
 	const [device, setDevice] = useState("");
+	const [gpu, setGpu] = useState(false);
 	const [testResult, setTestResult] = useState<string | null>(null);
 	const [testing, setTesting] = useState(false);
 	const [loading, setLoading] = useState(true);
@@ -33,11 +34,13 @@ export default function SettingsPage() {
 		Promise.all([
 			apiGet<{ providers: Provider[]; cloud: Cloud[] }>("/api/llm/providers"),
 			apiGet<{ server?: string; device?: string }>("/api/v1/status"),
+			apiGet<{ gpu_present?: boolean }>("/api/llm/onboarding"),
 		])
-			.then(([p, s]) => {
+			.then(([p, s, o]) => {
 				setProviders(p.providers);
 				setCloud(p.cloud);
 				setDevice(String(s.device ?? ""));
+				setGpu(o.gpu_present === true);
 				setDetected(p.providers.filter((x) => x.detected).map((x) => x.id));
 				setGpuNote(`Compute device: ${String(s.device ?? "?")}.`);
 			})
@@ -108,9 +111,11 @@ export default function SettingsPage() {
 			<div data-testid="llm-onboarding" className="text-sm text-gray-400 mb-4">
 				{providers.some((p) => p.detected)
 					? "A local provider is detected — pick it below and chat for free."
-					: "No local LLM detected. Install Ollama (https://ollama.me), run `ollama pull qwen3:8b`, then Test."}
+					: gpu
+						? "GPU detected but no local LLM is running — install Ollama for GPU-accelerated chat, then Test."
+						: "No local LLM detected. Install Ollama (https://ollama.me), run `ollama pull qwen3:8b`, then Test."}
 				{device && (
-					<span className="ml-2 text-gray-500">Compute device: {device}.</span>
+					<span className="ml-2 text-gray-400">Compute device: {device}.</span>
 				)}
 			</div>
 

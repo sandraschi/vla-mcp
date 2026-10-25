@@ -16,10 +16,11 @@ import {
 	Sparkles,
 	Wrench,
 } from "lucide-react";
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useBackendStatus } from "../lib/useBackendStatus";
 import { useZoom } from "../lib/useZoom";
+import LoggerModal from "./LoggerModal";
 
 const navItems = [
 	{ to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -41,9 +42,34 @@ const navItems = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-	useZoom();
+	const { reset: resetZoom, level: zoomLevel } = useZoom();
 	const [collapsed, setCollapsed] = useState(false);
+	const [loggerOpen, setLoggerOpen] = useState(false);
 	const backend = useBackendStatus();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (!(e.ctrlKey || e.metaKey)) return;
+			if (e.key.toLowerCase() === "l") {
+				e.preventDefault();
+				setLoggerOpen((v) => !v);
+			} else if (e.key.toLowerCase() === "h") {
+				e.preventDefault();
+				navigate("/help");
+			} else if (e.key.toLowerCase() === "k") {
+				const input = document.querySelector<HTMLElement>(
+					'[data-testid^="search-"] input, input[data-testid^="search-"], [data-testid="search-episodes"], [data-testid="search-tools"], [data-testid="search-inbox"], [data-testid="search-apps"], [data-testid="logger-search"], [data-testid="chat-input"]',
+				);
+				if (input) {
+					e.preventDefault();
+					input.focus();
+				}
+			}
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	}, [navigate]);
 
 	return (
 		<div className="flex h-screen">
@@ -111,9 +137,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 							Restart Backend
 						</button>
 					)}
+					{!collapsed && (
+						<div className="mt-1 flex items-center gap-1">
+							<button
+								type="button"
+								data-testid="logger-toggle"
+								onClick={() => setLoggerOpen(true)}
+								title="Server logs (Ctrl+L)"
+								className="flex-1 text-sm px-2 py-1 rounded bg-gray-800 text-gray-300 hover:text-gray-100"
+							>
+								Logs
+							</button>
+							<button
+								type="button"
+								onClick={resetZoom}
+								title="Reset zoom (Ctrl+0)"
+								className="text-sm px-2 py-1 rounded bg-gray-800 text-gray-300 hover:text-gray-100"
+							>
+								{Math.round(zoomLevel * 100)}%
+							</button>
+						</div>
+					)}
 				</div>
 			</aside>
 			<main className="flex-1 overflow-auto p-6">{children}</main>
+			{loggerOpen && <LoggerModal onClose={() => setLoggerOpen(false)} />}
 		</div>
 	);
 }

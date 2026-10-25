@@ -16,7 +16,7 @@ repos:
         pass_filenames: false
       - id: biome
         name: biome check
-        entry: scripts/pre-commit-biome.ps1
+        entry: powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/pre-commit-biome.ps1
         language: system
         types: [ts]
         pass_filenames: false
