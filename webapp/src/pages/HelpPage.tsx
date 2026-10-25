@@ -62,7 +62,7 @@ const TABS = [
 						</li>
 						<li>Deploy the trained policy back on the robot</li>
 					</ol>
-					<p className="text-xs text-muted-foreground mt-2 italic">
+					<p className="text-sm text-muted-foreground mt-2 italic">
 						Steps 1 and 5 are not implemented yet. This server handles steps
 						2—4.
 					</p>
@@ -147,11 +147,11 @@ const TABS = [
 						>
 							<div className="font-mono text-sm text-violet-300">{t.tool}</div>
 							{t.ops && (
-								<div className="text-xs text-muted-foreground mt-0.5">
+								<div className="text-sm text-muted-foreground mt-0.5">
 									Ops: {t.ops}
 								</div>
 							)}
-							<div className="text-xs text-muted-foreground mt-0.5">
+							<div className="text-sm text-muted-foreground mt-0.5">
 								{t.desc}
 							</div>
 						</div>
@@ -174,7 +174,7 @@ VLA_AIWATCHER_BASE_URL=  # aiwatcher ingest endpoint
 VLA_AIWATCHER_API_KEY=   # must match aiwatcher's key (or both empty)
 WALLX_REPO_DIR=          # local clone of X-Square-Robot/wall-x`}
 				</pre>
-				<p className="text-xs">
+				<p className="text-sm">
 					API keys only matter when aiwatcher has AIWATCHER_API_KEY set. Not
 					related to HuggingFace login.
 				</p>
@@ -257,7 +257,7 @@ export default function HelpPage() {
 	const activeContent = TABS.find((t) => t.id === activeTab)?.content;
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6" data-testid="help-page">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Help & Docs</h1>
@@ -265,7 +265,7 @@ export default function HelpPage() {
 						VLA pipeline, configuration, and fleet integration reference.
 					</p>
 				</div>
-				<div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-widest">
+				<div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-sm font-bold uppercase tracking-widest">
 					<AlertTriangle className="w-3 h-3" />
 					Alpha
 				</div>
@@ -310,7 +310,7 @@ export default function HelpPage() {
 								key={s}
 								type="button"
 								onClick={() => setSlug(s)}
-								className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+								className={`text-sm px-2.5 py-1 rounded-full border transition-colors ${
 									slug === s
 										? "bg-primary/10 border-primary/30 text-primary"
 										: "bg-card border-border text-muted-foreground hover:text-foreground"

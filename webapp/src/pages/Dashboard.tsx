@@ -67,7 +67,7 @@ export default function Dashboard() {
 	const features = (caps?.features as Record<string, boolean>) ?? {};
 
 	return (
-		<div>
+		<div data-testid="dashboard">
 			<h1 className="text-2xl font-bold mb-2">VLA Dashboard</h1>
 			<p className="text-gray-400 text-sm mb-4">
 				Wall-OSS-0.5 + WALL-WM + DMuon — event-joint spatial intelligence
@@ -139,7 +139,7 @@ export default function Dashboard() {
 								<div className="flex items-center gap-2 text-sm text-gray-400 mb-1">
 									<Icon size={14} className="text-violet-400" />
 									{label}
-									<span className="ml-auto text-xs text-gray-600">
+									<span className="ml-auto text-sm text-gray-400">
 										{summary?.count ?? 0} entries
 									</span>
 								</div>
@@ -148,15 +148,15 @@ export default function Dashboard() {
 										<div className="text-sm font-medium text-gray-100 truncate">
 											{latest.title}
 										</div>
-										<div className="text-xs text-gray-500 line-clamp-2 mt-1">
+										<div className="text-sm text-gray-400 line-clamp-2 mt-1">
 											{snippet}
 										</div>
-										<div className="text-[11px] text-gray-600 mt-1">
+										<div className="text-xs text-gray-400 mt-1">
 											{new Date(latest.created_at).toLocaleString()}
 										</div>
 									</>
 								) : (
-									<div className="text-xs text-gray-500 mt-1">{snippet}</div>
+									<div className="text-sm text-gray-400 mt-1">{snippet}</div>
 								)}
 							</Link>
 						);
@@ -170,7 +170,7 @@ export default function Dashboard() {
 					{Object.entries(features).map(([k, v]) => (
 						<span
 							key={k}
-							className={`text-xs px-2 py-1 rounded ${v ? "bg-violet-900/40 text-violet-200" : "bg-gray-800 text-gray-500"}`}
+							className={`text-sm px-2 py-1 rounded ${v ? "bg-violet-900/40 text-violet-200" : "bg-gray-800 text-gray-300"}`}
 						>
 							{k}: {v ? "on" : "off"}
 						</span>
@@ -178,7 +178,7 @@ export default function Dashboard() {
 				</div>
 			</div>
 
-			<p className="text-sm text-gray-500">
+			<p className="text-sm text-gray-400">
 				<Link to="/pipeline" className="text-violet-400 hover:text-violet-300">
 					E2E pipeline
 				</Link>

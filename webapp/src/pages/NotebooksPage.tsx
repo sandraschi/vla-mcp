@@ -184,10 +184,10 @@ export default function NotebooksPage() {
 									key={c}
 									type="button"
 									onClick={() => setCategory(c)}
-									className={`text-xs px-2 py-1 rounded ${
+									className={`text-sm px-2 py-1 rounded ${
 										category === c
 											? "bg-violet-900/40 text-violet-200"
-											: "bg-gray-800 text-gray-500 hover:text-gray-300"
+											: "bg-gray-800 text-gray-300 hover:text-gray-100"
 									}`}
 								>
 									{c}
@@ -224,7 +224,7 @@ export default function NotebooksPage() {
 
 			<div className="space-y-3" data-testid="notebook-entries">
 				{entries.length === 0 && (
-					<p className="text-sm text-gray-500">
+					<p className="text-sm text-gray-400">
 						{active === "news"
 							? "No digests yet — pull one above."
 							: "No entries yet."}
@@ -241,7 +241,7 @@ export default function NotebooksPage() {
 									{entry.title}
 								</span>
 								{entry.category && entry.category !== "note" && (
-									<span className="ml-2 text-xs px-2 py-0.5 rounded bg-violet-900/40 text-violet-300">
+									<span className="ml-2 text-sm px-2 py-0.5 rounded bg-violet-900/40 text-violet-300">
 										{entry.category}
 									</span>
 								)}
@@ -250,7 +250,7 @@ export default function NotebooksPage() {
 								type="button"
 								data-testid={`notebook-delete-${entry.id}`}
 								onClick={() => remove(entry.id)}
-								className="text-gray-600 hover:text-red-400 transition shrink-0"
+								className="text-gray-400 hover:text-red-400 transition shrink-0"
 								title="Delete"
 							>
 								<Trash2 size={14} />
@@ -259,7 +259,7 @@ export default function NotebooksPage() {
 						<p className="text-sm text-gray-400 whitespace-pre-wrap">
 							{entry.body}
 						</p>
-						<div className="mt-2 text-xs text-gray-600 flex flex-wrap gap-x-3 gap-y-1">
+						<div className="mt-2 text-sm text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
 							<span>{new Date(entry.created_at).toLocaleString()}</span>
 							<span>{entry.author}</span>
 							{entry.tags?.length > 0 && <span>{entry.tags.join(", ")}</span>}
@@ -268,7 +268,7 @@ export default function NotebooksPage() {
 									{Object.entries(entry.metrics).map(([k, v]) => (
 										<span
 											key={k}
-											className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono"
+											className="px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-mono"
 										>
 											{k}: {String(v)}
 										</span>
@@ -279,7 +279,7 @@ export default function NotebooksPage() {
 					</div>
 				))}
 				{total > entries.length && (
-					<p className="text-xs text-gray-600">
+					<p className="text-sm text-gray-400">
 						+{total - entries.length} older entries (limit 500)
 					</p>
 				)}

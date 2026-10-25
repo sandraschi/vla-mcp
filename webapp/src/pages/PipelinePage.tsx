@@ -85,7 +85,7 @@ export default function PipelinePage() {
 	const duration = readDuration(shownSegments);
 
 	return (
-		<div>
+		<div data-testid="pipeline-page">
 			<h1 className="text-2xl font-bold mb-2">E2E Pipeline</h1>
 			<p className="text-gray-400 text-sm mb-6">
 				worldlabs → yahboom → ingest → export_numpy → DMuon dry_run (provenance
@@ -96,6 +96,7 @@ export default function PipelinePage() {
 				<button
 					type="button"
 					disabled={busy}
+					data-testid="pipeline-run-sim"
 					onClick={() => run(false)}
 					className="px-4 py-2 bg-violet-700 hover:bg-violet-600 disabled:opacity-50 rounded text-sm"
 				>
@@ -104,6 +105,7 @@ export default function PipelinePage() {
 				<button
 					type="button"
 					disabled={busy}
+					data-testid="pipeline-run-live"
 					onClick={() => run(true)}
 					className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 disabled:opacity-50 rounded text-sm"
 				>

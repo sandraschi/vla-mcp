@@ -77,7 +77,7 @@ export default function TrainingPage() {
 	const jobList = jobs?.jobs ?? [];
 
 	return (
-		<div>
+		<div data-testid="training-page">
 			<h1 className="text-2xl font-bold mb-2">Training</h1>
 			<p className="text-gray-400 text-sm mb-6">
 				DMuon gradient-bridged co-training — jobs persist under
@@ -87,6 +87,7 @@ export default function TrainingPage() {
 			<div className="flex flex-wrap gap-2 mb-4">
 				<button
 					type="button"
+					data-testid="training-dry-run"
 					onClick={previewLaunch}
 					className="px-4 py-2 bg-violet-700 hover:bg-violet-600 rounded text-sm"
 				>
