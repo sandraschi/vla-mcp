@@ -112,6 +112,57 @@ def setup_webapp(
         body = await FleetBridge.default().bridge_status()
         return JSONResponse(body)
 
+    @app.get("/api/fleet/apps")
+    async def api_fleet_apps() -> dict:
+        """Apps Hub discovery: known fleet apps + experimental extras.
+
+        Known = this server + the four configured peers. Anything arriving via
+        VLA_MCP_BRIDGE_URLS that is not a known peer lands in "experimental".
+        """
+        cfg = get_config()
+        bridge = FleetBridge.default()
+        peers = bridge.peer_urls()
+        apps: list[dict[str, Any]] = [
+            {
+                "name": "vla-mcp",
+                "role": "this server",
+                "backend_url": f"http://127.0.0.1:{cfg.api_port}",
+                "frontend_url": f"http://127.0.0.1:{cfg.frontend_port}",
+                "reachable": True,
+                "experimental": False,
+            }
+        ]
+        for name, url in peers.items():
+            probe = await bridge.probe_peer(name, url)
+            apps.append(
+                {
+                    "name": name,
+                    "role": "fleet peer",
+                    "backend_url": url,
+                    "frontend_url": None,
+                    "reachable": bool(probe.get("reachable", False)),
+                    "experimental": False,
+                }
+            )
+        experimental: list[dict[str, Any]] = []
+        known_urls = {u.rstrip("/") for u in peers.values() if u}
+        raw = cfg.mcp_bridge_urls or ""
+        for url in [u.strip() for u in raw.split(",") if u.strip()]:
+            if url.rstrip("/") in known_urls:
+                continue
+            probe = await bridge.probe_peer(url, url)
+            experimental.append(
+                {
+                    "name": url,
+                    "role": "extra bridge",
+                    "backend_url": url,
+                    "frontend_url": None,
+                    "reachable": bool(probe.get("reachable", False)),
+                    "experimental": True,
+                }
+            )
+        return {"apps": apps, "experimental": experimental}
+
     @app.get("/api/v1/dataset/episodes")
     async def api_episodes(limit: int = 50, offset: int = 0) -> dict:
         return DatasetStore.default().list_episodes(limit=limit, offset=offset)

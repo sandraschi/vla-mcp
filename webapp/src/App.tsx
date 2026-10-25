@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
+import AppsPage from "./pages/AppsPage";
 import ChatPage from "./pages/ChatPage";
 import Dashboard from "./pages/Dashboard";
 import DatasetPage from "./pages/DatasetPage";
@@ -33,6 +34,7 @@ export default function App() {
 				<Route path="/chat" element={<ChatPage />} />
 				<Route path="/inbox" element={<InboxPage />} />
 				<Route path="/skills" element={<SkillsPage />} />
+				<Route path="/apps" element={<AppsPage />} />
 				<Route path="/logs" element={<LogsPage />} />
 				<Route path="/settings" element={<SettingsPage />} />
 			</Routes>
