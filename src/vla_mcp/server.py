@@ -26,6 +26,7 @@ from .engine.pipeline_runner import PipelineRunner
 from .engine.wall_runner import WallRunner
 from .engine.world_model_runner import WorldModelRunner
 from .engine.xvla_adapter import XVLAAdapter
+from .errors import _error_response, _wrap
 from .pipeline_liveness import check_pipeline_liveness
 from .prompts_resources import register_prompts_and_resources
 from .tools.diary import register_diary_tool
@@ -64,6 +65,14 @@ INSTRUCTIONS = (
 )
 
 _READ_ONLY = {"readOnlyHint": True}
+_MUTATING = {"destructiveHint": False, "idempotentHint": False, "openWorldHint": True}
+_DESTRUCTIVE = {"destructiveHint": True, "idempotentHint": False, "openWorldHint": True}
+# Dialogic envelope: every tool returns {"success": bool, "message": str, ...}.
+_OUT = {
+    "type": "object",
+    "properties": {"success": {"type": "boolean"}, "message": {"type": "string"}},
+    "required": ["success"],
+}
 _ALL_TOOLS: dict[str, Callable[..., Awaitable[Any]]] = {}
 
 
@@ -114,7 +123,7 @@ def build_mcp() -> FastMCP:
     )
     _mount_fleet_proxies(mcp)
 
-    @mcp.tool(annotations=_READ_ONLY)
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_pipeline_liveness(stale_hours: int = 168) -> dict[str, Any]:
         """VLA_PIPELINE_LIVENESS - Stale VLA loops and unreachable fleet peers.
 
@@ -130,9 +139,9 @@ def build_mcp() -> FastMCP:
         vla_pipeline_liveness()
         vla_pipeline_liveness(stale_hours=48)
         """
-        return await check_pipeline_liveness(stale_hours=stale_hours)
+        return _wrap(await check_pipeline_liveness(stale_hours=stale_hours), "Liveness checked.")
 
-    @mcp.tool(annotations=_READ_ONLY)
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_status() -> dict[str, Any]:
         """VLA_STATUS - Snapshot of Wall-OSS, WALL-WM, DMuon, HF cache, and dataset.
 
@@ -162,7 +171,7 @@ def build_mcp() -> FastMCP:
             "message": "VLA stack status.",
         }
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_weights(
         operation: Annotated[
             Literal["list_models", "local_status", "download"],
@@ -186,20 +195,20 @@ def build_mcp() -> FastMCP:
         """
         mgr = HFWeightManager.default()
         if operation == "list_models":
-            return mgr.list_models()
+            return _wrap(mgr.list_models(), "Models listed.")
         if operation == "local_status":
-            return mgr.local_status(model_key)
+            return _wrap(mgr.local_status(model_key), "Local weight status.")
         if operation == "download":
             if not model_key:
-                return {"success": False, "error": "model_key required for download"}
-            return mgr.download(model_key, revision=revision)
-        return {
-            "success": False,
-            "error": f"Unknown operation: {operation}",
-            "recovery_options": ["list_models", "local_status", "download"],
-        }
+                return _error_response("model_key required for download", error_type="validation")
+            return _wrap(mgr.download(model_key, revision=revision), "Download finished.")
+        return _error_response(
+            f"Unknown operation: {operation}",
+            error_type="unknown_operation",
+            extra={"recovery_options": ["list_models", "local_status", "download"]},
+        )
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_wall(
         operation: Annotated[
             Literal["health", "infer_prepare", "finetune_prepare", "list_tasks", "edge_prepare"],
@@ -222,16 +231,16 @@ def build_mcp() -> FastMCP:
         if operation == "health":
             return {"success": True, "result": runner.health(), "message": "Wall-OSS-0.5 status."}
         if operation == "infer_prepare":
-            return runner.infer_prepare(task_hint=task_hint)
+            return _wrap(runner.infer_prepare(task_hint=task_hint), "Infer prep ready.")
         if operation == "finetune_prepare":
-            return runner.finetune_prepare(recipe=recipe)
+            return _wrap(runner.finetune_prepare(recipe=recipe), "Finetune prep ready.")
         if operation == "list_tasks":
-            return runner.list_tasks()
+            return _wrap(runner.list_tasks(), "Tasks listed.")
         if operation == "edge_prepare":
-            return runner.edge_prepare(target=target)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+            return _wrap(runner.edge_prepare(target=target), "Edge prep ready.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_xvla(
         operation: Annotated[
             Literal[
@@ -262,18 +271,18 @@ def build_mcp() -> FastMCP:
         if operation == "health":
             return {"success": True, "result": adapter.health(), "message": "X-VLA edge adapter status."}
         if operation == "list_targets":
-            return adapter.list_targets()
+            return _wrap(adapter.list_targets(), "Targets listed.")
         if operation == "peft_config_template":
-            return adapter.peft_config_template(target=target, rank=rank)
+            return _wrap(adapter.peft_config_template(target=target, rank=rank), "PEFT template ready.")
         if operation == "peft_prepare":
-            return adapter.peft_prepare(target=target, rank=rank, write=write)
+            return _wrap(adapter.peft_prepare(target=target, rank=rank, write=write), "PEFT prep ready.")
         if operation == "edge_prepare":
-            return adapter.edge_prepare(target=target)
+            return _wrap(adapter.edge_prepare(target=target), "Edge prep ready.")
         if operation == "infer_prepare":
-            return adapter.infer_prepare(target=target, task_hint=task_hint)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+            return _wrap(adapter.infer_prepare(target=target, task_hint=task_hint), "Infer prep ready.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_world_model(
         operation: Annotated[
             Literal["health", "train_prepare", "predict_prepare", "event_vocab"],
@@ -295,14 +304,14 @@ def build_mcp() -> FastMCP:
         if operation == "health":
             return {"success": True, "result": runner.health(), "message": "WALL-WM status."}
         if operation == "train_prepare":
-            return runner.train_prepare(notes=notes)
+            return _wrap(runner.train_prepare(notes=notes), "Train prep ready.")
         if operation == "predict_prepare":
-            return runner.predict_prepare(horizon_steps=horizon_steps)
+            return _wrap(runner.predict_prepare(horizon_steps=horizon_steps), "Predict prep ready.")
         if operation == "event_vocab":
-            return runner.event_vocab()
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+            return _wrap(runner.event_vocab(), "Event vocabulary.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_DESTRUCTIVE, output_schema=_OUT)
     async def vla_dataset(
         operation: Annotated[
             Literal[
@@ -327,7 +336,7 @@ def build_mcp() -> FastMCP:
         limit: Annotated[int, Field(description="Page size for list_episodes")] = 50,
         offset: Annotated[int, Field(description="Offset for list_episodes")] = 0,
         shard_name: Annotated[str | None, Field(description="Shard name for export operations")] = None,
-        episode_ids: list[str] | None = None,
+        episode_ids: Annotated[list[str] | None, Field(description="Episode ids for export")] = None,
     ) -> dict[str, Any]:
         """VLA_DATASET - Event-grounded trajectory registry and numpy export for DMuon.
 
@@ -343,44 +352,52 @@ def build_mcp() -> FastMCP:
         store = DatasetStore.default()
         if operation == "ingest_episode":
             if not source or not events:
-                return {"success": False, "error": "source and events required", "error_type": "validation"}
-            return store.ingest_episode(
-                source=source,
-                events=events,
-                video_paths=video_paths,
-                action_path=action_path,
-                actions=actions,
-                metadata=metadata,
+                return _error_response("source and events required", error_type="validation")
+            return _wrap(
+                store.ingest_episode(
+                    source=source,
+                    events=events,
+                    video_paths=video_paths,
+                    action_path=action_path,
+                    actions=actions,
+                    metadata=metadata,
+                ),
+                "Episode ingested.",
             )
         if operation == "segment_telemetry":
             if not source or not telemetry:
-                return {"success": False, "error": "source and telemetry required", "error_type": "validation"}
-            return store.segment_and_ingest(
-                source=source,
-                telemetry=telemetry,
-                video_paths=video_paths,
-                action_path=action_path,
-                actions=actions,
-                metadata=metadata,
+                return _error_response("source and telemetry required", error_type="validation")
+            return _wrap(
+                store.segment_and_ingest(
+                    source=source,
+                    telemetry=telemetry,
+                    video_paths=video_paths,
+                    action_path=action_path,
+                    actions=actions,
+                    metadata=metadata,
+                ),
+                "Telemetry segmented and ingested.",
             )
         if operation == "list_episodes":
-            return store.list_episodes(limit=limit, offset=offset)
+            return _wrap(store.list_episodes(limit=limit, offset=offset), "Episodes listed.")
         if operation == "export_shard":
             if not shard_name:
-                return {"success": False, "error": "shard_name required", "error_type": "validation"}
-            return store.export_shard(shard_name=shard_name, episode_ids=episode_ids)
+                return _error_response("shard_name required", error_type="validation")
+            return _wrap(store.export_shard(shard_name=shard_name, episode_ids=episode_ids), "Shard exported.")
         if operation == "export_numpy_shard":
             if not shard_name:
-                return {"success": False, "error": "shard_name required", "error_type": "validation"}
-            return store.export_numpy_shard(shard_name=shard_name, episode_ids=episode_ids)
+                return _error_response("shard_name required", error_type="validation")
+            return _wrap(
+                store.export_numpy_shard(shard_name=shard_name, episode_ids=episode_ids), "Numpy shard exported."
+            )
         if operation == "validate_multiview":
             paths = video_paths or []
             if not paths:
-                return {"success": False, "error": "video_paths required", "error_type": "validation"}
-            return store.validate_multiview(video_paths=paths)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+                return _error_response("video_paths required", error_type="validation")
+            return _wrap(store.validate_multiview(video_paths=paths), "Multiview validated.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_events(
         operation: Annotated[Literal["segment", "vocab"], Field(description="segment or vocab")],
         samples: Annotated[
@@ -400,14 +417,14 @@ def build_mcp() -> FastMCP:
         """
         seg = EventSegmenter()
         if operation == "vocab":
-            return seg.vocab()
+            return _wrap(seg.vocab(), "Event vocabulary.")
         if operation == "segment":
             if not samples:
-                return {"success": False, "error": "samples required", "error_type": "validation"}
-            return seg.segment(samples)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+                return _error_response("samples required", error_type="validation")
+            return _wrap(seg.segment(samples), "Telemetry segmented.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_DESTRUCTIVE, output_schema=_OUT)
     async def vla_training(
         operation: Annotated[
             Literal[
@@ -444,31 +461,34 @@ def build_mcp() -> FastMCP:
         if operation == "health":
             return {"success": True, "result": runner.health(), "message": "DMuon status."}
         if operation == "co_train_prepare":
-            return runner.co_train_prepare(dataset_shard=dataset_shard)
+            return _wrap(runner.co_train_prepare(dataset_shard=dataset_shard), "Co-train prep ready.")
         if operation == "config_template":
-            return runner.config_template()
+            return _wrap(runner.config_template(), "Config template ready.")
         if operation == "introspect_train_args":
-            return runner.introspect_train_args()
+            return _wrap(runner.introspect_train_args(), "Train args introspected.")
         if operation == "launch_co_train":
-            return await runner.launch_co_train(
-                confirm=confirm,
-                dataset_shard=dataset_shard,
-                extra_args=extra_args,
-                dry_run=dry_run,
+            return _wrap(
+                await runner.launch_co_train(
+                    confirm=confirm,
+                    dataset_shard=dataset_shard,
+                    extra_args=extra_args,
+                    dry_run=dry_run,
+                ),
+                "Co-train launched." if confirm and not dry_run else "Co-train dry run.",
             )
         if operation == "job_status":
-            return runner.job_status(job_id=job_id)
+            return _wrap(runner.job_status(job_id=job_id), "Job status.")
         if operation == "job_log":
             if not job_id:
-                return {"success": False, "error": "job_id required for job_log"}
-            return runner.job_log(job_id, offset=log_offset)
+                return _error_response("job_id required for job_log", error_type="validation")
+            return _wrap(runner.job_log(job_id, offset=log_offset), "Job log tail.")
         if operation == "stop_job":
             if not job_id:
-                return {"success": False, "error": "job_id required for stop_job"}
-            return runner.stop_job(job_id)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+                return _error_response("job_id required for stop_job", error_type="validation")
+            return _wrap(runner.stop_job(job_id), "Stop requested.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_pipeline(
         operation: Annotated[Literal["describe", "run", "last_run"], Field(description="Pipeline operation")],
         live: Annotated[bool, Field(description="Live fleet loop (default simulate)")] = False,
@@ -492,23 +512,26 @@ def build_mcp() -> FastMCP:
         """
         pipe = PipelineRunner.default()
         if operation == "describe":
-            return pipe.describe()
+            return _wrap(pipe.describe(), "Pipeline described.")
         if operation == "last_run":
-            return pipe.last_run()
+            return _wrap(pipe.last_run(), "Last run.")
         if operation == "run":
-            return await pipe.run(
-                live=live,
-                shard_name=shard_name,
-                include_failures=include_failures,
-                room_style=room_style,
-                fallback_simulate=fallback_simulate,
-                boomy_demo=boomy_demo,
-                boomy_pattern=boomy_pattern,
-                generate_world=generate_world,
+            return _wrap(
+                await pipe.run(
+                    live=live,
+                    shard_name=shard_name,
+                    include_failures=include_failures,
+                    room_style=room_style,
+                    fallback_simulate=fallback_simulate,
+                    boomy_demo=boomy_demo,
+                    boomy_pattern=boomy_pattern,
+                    generate_world=generate_world,
+                ),
+                "Pipeline run finished.",
             )
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool(annotations=_READ_ONLY)
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_fleet(
         operation: Annotated[
             Literal["bridge_status", "scenario_brief", "list_peers", "call_peer"],
@@ -533,22 +556,25 @@ def build_mcp() -> FastMCP:
         """
         bridge = FleetBridge.default()
         if operation == "list_peers":
-            return {"success": True, "peers": bridge.peer_urls()}
+            return {"success": True, "peers": bridge.peer_urls(), "message": "Peers listed."}
         if operation == "bridge_status":
-            return await bridge.bridge_status()
+            return _wrap(await bridge.bridge_status(), "Bridge status.")
         if operation == "scenario_brief":
-            return bridge.scenario_brief(
-                room_style=room_style,
-                include_failures=include_failures,
-                agents=agents,
+            return _wrap(
+                bridge.scenario_brief(
+                    room_style=room_style,
+                    include_failures=include_failures,
+                    agents=agents,
+                ),
+                "Scenario brief ready.",
             )
         if operation == "call_peer":
             if not peer or not tool_name:
-                return {"success": False, "error": "peer and tool_name required for call_peer"}
-            return await bridge.call_peer(peer, tool_name, arguments)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+                return _error_response("peer and tool_name required for call_peer", error_type="validation")
+            return _wrap(await bridge.call_peer(peer, tool_name, arguments), "Peer call finished.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_world(
         operation: Annotated[Literal["describe", "generate"], Field(description="describe or generate")],
         prompt: Annotated[str, Field(description="Scene description for the room generator")] = (
@@ -581,11 +607,11 @@ def build_mcp() -> FastMCP:
             }
         if operation == "generate":
             if not prompt:
-                return {"success": False, "error": "prompt required for generate"}
-            return await bridge.generate_world(prompt)
-        return {"success": False, "error": f"Unknown operation: {operation}"}
+                return _error_response("prompt required for generate", error_type="validation")
+            return _wrap(await bridge.generate_world(prompt), "World generation requested.")
+        return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
-    @mcp.tool()
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_agentic_workflow(
         ctx: Context,
         goal: Annotated[str, Field(description="Planning goal for the VLA session")],
@@ -620,7 +646,7 @@ def build_mcp() -> FastMCP:
                 out = await ctx.sample(prompt)  # type: ignore[misc]
                 plan = getattr(out, "text", None) or str(out)
             except Exception as exc:
-                logger.warning("agentic_sample_failed", error=str(exc))
+                logger.warning("agentic_sample_failed: %s", exc)
         return {
             "success": True,
             "goal": goal,
@@ -632,7 +658,7 @@ def build_mcp() -> FastMCP:
 
     from .help_content import get_help
 
-    @mcp.tool()
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_help(
         topic: Annotated[str | None, Field(description="Help section id, or omit for overview + topic list")] = None,
     ) -> dict[str, Any]:
@@ -648,9 +674,9 @@ def build_mcp() -> FastMCP:
         vla_help()
         vla_help(topic="tools")
         """
-        return get_help(topic)
+        return _wrap(get_help(topic), "Help topic ready.")
 
-    @mcp.tool(annotations=_READ_ONLY)
+    @mcp.tool(annotations=_READ_ONLY, output_schema=_OUT)
     async def vla_shutdown() -> dict[str, Any]:
         """VLA_SHUTDOWN - Orderly self-termination for agents and the fleet launcher.
 

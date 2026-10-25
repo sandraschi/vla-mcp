@@ -9,6 +9,7 @@ from fastmcp import FastMCP
 from pydantic import Field
 
 from ..engine.notebook_store import NOTEBOOKS, NotebookStore
+from ..errors import _error_response, _wrap
 from ..integrations.aiwatcher import fetch_fleet_items
 
 
@@ -61,7 +62,14 @@ async def _build_digest() -> dict[str, Any]:
 def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
     """Register the vla_diary portmanteau."""
 
-    @mcp.tool()
+    @mcp.tool(
+        annotations={"destructiveHint": True, "idempotentHint": False, "openWorldHint": True},
+        output_schema={
+            "type": "object",
+            "properties": {"success": {"type": "boolean"}, "message": {"type": "string"}},
+            "required": ["success"],
+        },
+    )
     async def vla_diary(
         operation: Annotated[
             Literal["log", "list", "get", "delete", "news", "status", "summary"],
@@ -153,11 +161,11 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
             }
 
         if operation == "news":
-            return await _build_digest()
+            return _wrap(await _build_digest(), "News digest saved.")
 
         if operation == "list":
             if notebook not in NOTEBOOKS:
-                return {"success": False, "error": f"notebook must be one of {NOTEBOOKS}", "error_type": "validation"}
+                return _error_response(f"notebook must be one of {NOTEBOOKS}", error_type="validation")
             result = store.list_entries(notebook, limit=limit, offset=offset, category=category)
             return {
                 "success": True,
@@ -170,53 +178,51 @@ def register_diary_tool(mcp: FastMCP, all_tools: dict[str, Any]) -> None:
 
         if operation == "get":
             if not entry_id:
-                return {"success": False, "error": "entry_id required for get", "error_type": "validation"}
+                return _error_response("entry_id required for get", error_type="validation")
             entry = store.get_entry(notebook, entry_id)
             if entry is None:
-                return {"success": False, "error": "entry not found", "error_type": "not_found"}
+                return _error_response("entry not found", error_type="not_found")
             return {"success": True, "entry": entry, "message": "Diary entry."}
 
         if operation == "delete":
             if not entry_id:
-                return {"success": False, "error": "entry_id required for delete", "error_type": "validation"}
+                return _error_response("entry_id required for delete", error_type="validation")
             if not confirm:
-                return {
-                    "success": False,
-                    "error": "delete requires confirm=True",
-                    "error_type": "confirmation_required",
-                    "recovery_options": ["Re-call with confirm=True to delete"],
-                }
+                return _error_response(
+                    "delete requires confirm=True",
+                    error_type="confirmation_required",
+                    extra={"recovery_options": ["Re-call with confirm=True to delete"]},
+                )
             deleted = store.delete_entry(notebook, entry_id)
             if not deleted:
-                return {"success": False, "error": "entry not found", "error_type": "not_found"}
+                return _error_response("entry not found", error_type="not_found")
             return {"success": True, "deleted": entry_id, "message": "Diary entry deleted."}
 
         if operation == "log":
             if notebook not in NOTEBOOKS:
-                return {"success": False, "error": f"notebook must be one of {NOTEBOOKS}", "error_type": "validation"}
+                return _error_response(f"notebook must be one of {NOTEBOOKS}", error_type="validation")
             if notebook == "news":
-                return {
-                    "success": False,
-                    "error": "news entries are digest-generated via operation=news",
-                    "error_type": "validation",
-                }
+                return _error_response("news entries are digest-generated via operation=news", error_type="validation")
             if not title or not body:
-                return {"success": False, "error": "title and body required for log", "error_type": "validation"}
+                return _error_response("title and body required for log", error_type="validation")
             who = (author or "agent:opencode").strip() or "agent:opencode"
-            return store.add_entry(
-                notebook,
-                title=title,
-                body=body,
-                category=category or "note",
-                author=who,
-                tags=tags,
-                metrics=metrics,
+            return _wrap(
+                store.add_entry(
+                    notebook,
+                    title=title,
+                    body=body,
+                    category=category or "note",
+                    author=who,
+                    tags=tags,
+                    metrics=metrics,
+                ),
+                "Diary entry logged.",
             )
 
-        return {
-            "success": False,
-            "error": f"Unknown operation: {operation}",
-            "recovery_options": ["log", "list", "get", "delete", "news", "status", "summary"],
-        }
+        return _error_response(
+            f"Unknown operation: {operation}",
+            error_type="unknown_operation",
+            extra={"recovery_options": ["log", "list", "get", "delete", "news", "status", "summary"]},
+        )
 
     all_tools["vla_diary"] = vla_diary
