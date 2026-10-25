@@ -11,6 +11,7 @@
 | `VLA_DATASET_ROOT` | `%TEMP%\vla_mcp_data` | Episodes + exports + logs |
 | `VLA_HF_CACHE_DIR` | `{dataset}/hf_cache` | Hugging Face download cache |
 | `VLA_HF_WALL_OSS_REPO` | `X-Square-Robot/Wall-OSS-0.5` | HF repo id |
+| `VLA_HF_WALL_WM_REPO` | `X-Square-Robot/WALL-WM` | HF repo id |
 | `VLA_XVLA_ROOT` | — | Clone of github.com/2toinf/X-VLA |
 | `VLA_XVLA_PEFT_ADAPTER` | — | Trained LoRA adapter directory |
 | `VLA_XVLA_PEFT_DIR` | `{dataset}/peft/xvla` | PEFT config output |

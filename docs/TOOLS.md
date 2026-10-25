@@ -93,9 +93,65 @@ REST: `POST /api/v1/pipeline/run` (requires `X-VLA-Confirm: 1`).
 
 Multi-step planning with optional `ctx.sample`.
 
+## vla_world
+
+3D room generation via worldlabs-mcp (returns Marble viewer URL):
+
+| Operation | Description |
+|-----------|-------------|
+| `describe` | Peer config + existing URL |
+| `generate` | Create a navigable 3D world from `prompt` |
+
+MCP: `vla_world(operation="generate", prompt="cluttered workshop")`.
+
+## vla_shutdown
+
+Orderly self-termination (200 flush, ~500 ms exit). REST mirror: `POST /api/shutdown`.
+Blocked from generic `POST /api/v1/control/*` (terminal op, like `vla_agentic_workflow`).
+
+## vla_help
+
+| Topic | Contents |
+|-------|----------|
+| _(none)_ | Index + topic list |
+| `fleet_integration` | Fleet peers, aiwatcher wiring |
+| `api_keys` | HF token, aiwatcher key |
+| `tools` | Tool catalog |
+| `configuration` | Env vars |
+| `setup` | Install + verify |
+| `troubleshooting` | Common errors |
+| `architecture` | System design |
+| `prd` | Requirements |
+
 ## show_vla_status_card
 
 Prefab in-chat card (when `VLA_PREFAB_APPS=1`).
+
+## show_pipeline_run_card
+
+Prefab in-chat card for the last pipeline run (when `VLA_PREFAB_APPS=1`).
+
+## REST surface (webapp backend, port 11024)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/v1/status`, `/api/health` | Backend liveness |
+| `GET /api/v1/tools` | MCP tool names |
+| `GET /api/v1/dataset/episodes` | Episode registry (limit/offset) |
+| `GET /api/v1/training/jobs[/{id}/log[/stream]]` | DMuon job tracking |
+| `GET /api/v1/pipeline/last` | Last pipeline run (fast, ~0.3s) |
+| `POST /api/v1/pipeline/run` | Run loop (`X-VLA-Confirm: 1` for live) |
+| `GET /api/pipeline/liveness` | Stale loops + peer probes (bounded: 6s/peer, 10s total, 20s overall; 60s cache) |
+| `GET /api/v1/notebooks`, `/api/v1/notebooks/{name}/entries` | Diary notebooks |
+| `POST /api/v1/notebooks/news/digest` | aiwatcher news digest |
+| `GET /api/v1/help[/{slug}]`, `GET /api/capabilities` | Help topics, capability flags |
+| `GET /api/skills` | Domain skills (Chat page preprompt source) |
+| `GET /api/fleet/apps` | Apps Hub: known peers + experimental extras |
+| `GET /api/logs` | Ring-buffer server logs (`level`, `q`, `limit`) - Logger modal source |
+| `GET /api/v1/diagnostics` | Tools, system info, uptime (smoke-test source) |
+| `GET /api/llm/discover|providers|models|onboarding` | Local LLM detection + onboarding facts |
+| `POST /api/llm/chat`, `POST /api/llm/chat/stream` | Backend chat proxy (keys never leave the server) |
+| `POST /api/shutdown` | Orderly exit (~500 ms) |
 
 ## Examples
 
