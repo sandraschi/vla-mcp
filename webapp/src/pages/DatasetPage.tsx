@@ -115,7 +115,7 @@ export default function DatasetPage() {
 				</div>
 			)}
 			<div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-				<div className="space-y-2 max-h-96 overflow-y-auto">
+				<div className="space-y-2">
 					{visible.map((ep) => (
 						<div
 							key={ep.id}

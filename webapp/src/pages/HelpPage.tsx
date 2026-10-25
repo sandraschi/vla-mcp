@@ -8,6 +8,7 @@ import {
 	Server,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { apiGet } from "../lib/api";
 
 const MODELS = [
@@ -128,15 +129,52 @@ const TABS = [
 		icon: Server,
 		content: () => (
 			<div className="space-y-4 text-sm text-gray-400">
-				<p>
-					Peers: <code className="text-violet-300">worldlabs :10865</code> |{" "}
-					<code className="text-violet-300">robotics-mcp :10706</code> |{" "}
-					<code className="text-violet-300">yahboom :10892</code> |{" "}
-					<code className="text-violet-300">avatarops :10793</code>
-				</p>
+				<div>
+					<h3 className="text-sm font-semibold text-gray-200 mb-1">
+						Peers (defaults; override with VLA_*_MCP_URL, live status on the{" "}
+						<Link
+							to="/fleet"
+							className="text-violet-400 hover:text-violet-300 underline"
+						>
+							Fleet page
+						</Link>
+						)
+					</h3>
+					{[
+						[
+							"worldlabs-mcp",
+							"http://127.0.0.1:10865",
+							"3D rooms, multiview camera rigs",
+						],
+						[
+							"robotics-mcp",
+							"http://127.0.0.1:10706",
+							"robot tool bridge (vla_fleet call_peer targets)",
+						],
+						[
+							"yahboom-mcp",
+							"http://127.0.0.1:10892",
+							"Raspbot / Boomy demos, IMU reads",
+						],
+						[
+							"avatarops",
+							"http://127.0.0.1:10793",
+							"VRoid interaction episodes",
+						],
+					].map(([name, url, role]) => (
+						<div
+							key={name}
+							className="flex flex-wrap gap-x-3 gap-y-1 py-2 border-b border-gray-800"
+						>
+							<code className="text-violet-300">{name}</code>
+							<span className="font-mono text-gray-400">{url}</span>
+							<span>{role}</span>
+						</div>
+					))}
+				</div>
 				<p>
 					Pipeline completions push to aiwatcher POST /api/fleet/ingest (source:
-					vla-mcp-pipeline). Surfaces in VLA & Spatial AI bundle when
+					vla-mcp-pipeline). Surfaces in the VLA &amp; Spatial AI bundle when
 					VLA_AIWATCHER_BASE_URL=http://127.0.0.1:10946.
 				</p>
 				<p>
@@ -385,10 +423,10 @@ export default function HelpPage() {
 							key={tab.id}
 							type="button"
 							onClick={() => setActiveTab(tab.id)}
-							className={`flex items-center gap-2 px-4 py-3 rounded-t-xl text-sm font-medium transition-all whitespace-nowrap ${
+							className={`flex items-center gap-2 px-1 py-3 text-sm font-medium transition-all whitespace-nowrap border-b-2 -mb-px ${
 								activeTab === tab.id
-									? "bg-gray-900 border border-b-0 border-gray-800 text-gray-100 shadow-sm"
-									: "text-gray-400 hover:text-gray-100 hover:bg-gray-800"
+									? "border-violet-500 text-gray-100"
+									: "border-transparent text-gray-400 hover:text-gray-200"
 							}`}
 						>
 							<Icon className="w-4 h-4" />
@@ -424,7 +462,7 @@ export default function HelpPage() {
 						))}
 					</div>
 					{content && (
-						<pre className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-xs whitespace-pre-wrap max-h-[40vh] overflow-y-auto text-gray-400">
+						<pre className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-xs whitespace-pre-wrap text-gray-400">
 							{content}
 						</pre>
 					)}

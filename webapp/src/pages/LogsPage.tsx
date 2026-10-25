@@ -90,7 +90,7 @@ export default function LogsPage() {
 							Refresh
 						</button>
 					</div>
-					<pre className="bg-gray-950 border border-gray-800 rounded p-3 text-xs text-gray-300 overflow-x-auto max-h-[60vh] overflow-y-auto whitespace-pre-wrap">
+					<pre className="bg-gray-950 border border-gray-800 rounded p-3 text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap">
 						{log || "(empty log)"}
 					</pre>
 				</>

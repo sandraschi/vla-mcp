@@ -26,7 +26,9 @@ test("backend health is reachable through the vite proxy", async ({
 	expect(body.server).toBe("vla-mcp");
 });
 
-test("nav walk: chat, skills, help, and inbox pages render", async ({ page }) => {
+test("nav walk: chat, skills, help, and inbox pages render", async ({
+	page,
+}) => {
 	await page.goto("/chat");
 	await expect(page.getByTestId("chat-page")).toBeVisible();
 	await page.goto("/skills");

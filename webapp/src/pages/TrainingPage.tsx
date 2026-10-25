@@ -142,7 +142,7 @@ export default function TrainingPage() {
 					<h2 className="font-semibold mb-2">
 						Log tail {selectedJob ? `(${selectedJob})` : ""}
 					</h2>
-					<pre className="text-xs text-gray-400 overflow-auto max-h-96 whitespace-pre-wrap font-mono">
+					<pre className="text-xs text-gray-400 overflow-x-auto whitespace-pre-wrap font-mono">
 						{logText ||
 							(selectedJob ? "Waiting for log output…" : "Select a job")}
 					</pre>

@@ -42,25 +42,28 @@ export default function SkillsPage() {
 				</div>
 			)}
 			{!error && skills.length === 0 && (
-				<div className="text-sm text-gray-500">No skills registered.</div>
+				<div className="text-sm text-gray-400">No skills registered.</div>
 			)}
-			<div className="space-y-3">
+			<div className="divide-y divide-gray-800 border-y border-gray-800">
 				{skills.map((s) => (
-					<div
-						key={s.uri}
-						className="bg-gray-900 border border-gray-800 rounded-lg p-4"
-					>
-						<div className="text-sm font-medium text-gray-100">{s.name}</div>
-						<div className="text-xs text-violet-300 font-mono mt-0.5">
-							{s.uri}
-						</div>
-						<div className="text-sm text-gray-400 mt-1">{s.description}</div>
+					<details key={s.uri} className="py-3">
+						<summary className="cursor-pointer">
+							<span className="text-sm font-medium text-gray-100">
+								{s.name}
+							</span>
+							<span className="block text-xs text-violet-300 font-mono mt-0.5">
+								{s.uri}
+							</span>
+							<span className="block text-sm text-gray-400 mt-1">
+								{s.description}
+							</span>
+						</summary>
 						{s.content && (
-							<pre className="bg-gray-950 border border-gray-800 rounded p-3 text-xs text-gray-300 overflow-x-auto mt-2 max-h-64 overflow-y-auto whitespace-pre-wrap">
+							<pre className="mt-2 text-sm text-gray-300 whitespace-pre-wrap">
 								{s.content.slice(0, 4000)}
 							</pre>
 						)}
-					</div>
+					</details>
 				))}
 			</div>
 		</div>
