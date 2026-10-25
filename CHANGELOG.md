@@ -74,6 +74,13 @@
   the canonical Tauri root. Fixed `scripts/cua-smoke.py` `NSIS_GLOB` fallback default
   (pointed at a `web_sota/src-tauri` template path; live config already used `native/`).
 
+### Fixed (round 6, 2026-10-25 — dashboard hero + help page theme)
+- Dashboard hero: gradient banner with backend live/offline pill, version badge,
+  headline, subcopy, and CTAs (Run E2E pipeline / Open Chat / Browse weights).
+- Help page: was rendering shadcn theme tokens (`bg-card`, `text-muted-foreground`,
+  `border-border`, `animate-in`) that do not exist in this Tailwind v3 setup —
+  rewritten 1:1 in the app palette (gray-900/violet); e2e nav-walk extended to /help.
+
 ## [0.3.1b1] - 2026-08-06
 
 ### Added

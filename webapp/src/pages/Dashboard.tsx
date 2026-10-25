@@ -76,13 +76,65 @@ export default function Dashboard() {
 
 	const features = (caps?.features as Record<string, boolean>) ?? {};
 
+	const backendLive = status?.server === "vla-mcp";
+
 	return (
 		<div data-testid="dashboard">
-			<h1 className="text-2xl font-bold mb-2">VLA Dashboard</h1>
-			<p className="text-gray-400 text-sm mb-4">
-				Wall-OSS-0.5 + WALL-WM + DMuon — event-joint spatial intelligence
-				(wall-x / WALL-E stack)
-			</p>
+			<div
+				data-testid="dashboard-hero"
+				className="rounded-xl border border-violet-900/40 bg-gradient-to-br from-violet-950/60 via-gray-900 to-gray-900 p-6 mb-6"
+			>
+				<div className="flex flex-wrap items-center gap-2 mb-3">
+					<span
+						className={`inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full border ${
+							backendLive
+								? "border-green-800 bg-green-950/50 text-green-300"
+								: "border-amber-800 bg-amber-950/50 text-amber-300"
+						}`}
+					>
+						<span
+							className={`inline-block w-2 h-2 rounded-full ${backendLive ? "bg-green-500" : "bg-amber-500 animate-pulse"}`}
+						/>
+						{backendLive ? "Backend live" : "Backend offline"}
+					</span>
+					{typeof status?.version === "string" && status.version !== "-" && (
+						<span className="text-sm px-2.5 py-1 rounded-full border border-gray-700 text-gray-300">
+							v{String(status.version)}
+						</span>
+					)}
+				</div>
+				<h1 className="text-3xl font-bold text-gray-100 mb-2">
+					Vision-Language-Action bridge
+				</h1>
+				<p className="text-gray-400 text-sm max-w-2xl mb-4">
+					Wall-OSS-0.5 + WALL-WM + DMuon — event-joint spatial intelligence
+					(wall-x / WALL-E stack). Collect fleet telemetry, segment it into
+					event joints, export numpy shards, and dry-run DMuon co-training.
+				</p>
+				<div className="flex flex-wrap gap-2">
+					<Link
+						to="/pipeline"
+						data-testid="hero-run-pipeline"
+						className="px-4 py-2 rounded bg-violet-700 hover:bg-violet-600 text-white text-sm font-medium"
+					>
+						Run E2E pipeline
+					</Link>
+					<Link
+						to="/chat"
+						data-testid="hero-open-chat"
+						className="px-4 py-2 rounded border border-violet-700 text-violet-300 hover:bg-violet-900/30 text-sm font-medium"
+					>
+						Open Chat
+					</Link>
+					<Link
+						to="/weights"
+						data-testid="hero-browse-weights"
+						className="px-4 py-2 rounded border border-gray-700 text-gray-300 hover:bg-gray-800 text-sm font-medium"
+					>
+						Browse weights
+					</Link>
+				</div>
+			</div>
 
 			{onboarding && (
 				<div

@@ -1,7 +1,6 @@
 import {
 	AlertTriangle,
 	Book,
-	Box,
 	Cpu,
 	FlaskConical,
 	HelpCircle,
@@ -24,7 +23,7 @@ const TABS = [
 							<h3 className="font-semibold text-amber-500">
 								Alpha — Preemptive Infrastructure
 							</h3>
-							<p className="text-sm text-muted-foreground mt-1">
+							<p className="text-sm text-gray-400 mt-1">
 								vla-mcp is scaffolded for a future robotics training pipeline.
 								No robots have been trained with it yet. It exists so the bridge
 								is ready when someone collects teleoperation demos and runs
@@ -37,7 +36,7 @@ const TABS = [
 
 				<div>
 					<h3 className="text-lg font-bold mb-3">What is VLA?</h3>
-					<p className="text-sm text-muted-foreground leading-relaxed">
+					<p className="text-sm text-gray-400 leading-relaxed">
 						VLA (Vision-Language-Action) models take camera images + text
 						commands and output robot motor commands. Think "pick up the red
 						cube" → joint angle trajectory. This server bridges telemetry
@@ -48,7 +47,7 @@ const TABS = [
 
 				<div>
 					<h3 className="text-lg font-bold mb-3">The intended pipeline</h3>
-					<ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+					<ol className="space-y-2 text-sm text-gray-400 list-decimal list-inside">
 						<li>
 							Record teleoperation demos in MuJoCo sim or on a physical robot
 						</li>
@@ -62,7 +61,7 @@ const TABS = [
 						</li>
 						<li>Deploy the trained policy back on the robot</li>
 					</ol>
-					<p className="text-sm text-muted-foreground mt-2 italic">
+					<p className="text-sm text-gray-400 mt-2 italic">
 						Steps 1 and 5 are not implemented yet. This server handles steps
 						2—4.
 					</p>
@@ -75,7 +74,7 @@ const TABS = [
 		label: "Fleet Integration",
 		icon: Server,
 		content: () => (
-			<div className="space-y-4 text-sm text-muted-foreground">
+			<div className="space-y-4 text-sm text-gray-400">
 				<p>
 					Peers: <code className="text-violet-300">worldlabs :10865</code> |{" "}
 					<code className="text-violet-300">robotics-mcp :10706</code> |{" "}
@@ -105,7 +104,7 @@ const TABS = [
 		label: "MCP Tools",
 		icon: FlaskConical,
 		content: () => (
-			<div className="space-y-4 text-sm text-muted-foreground">
+			<div className="space-y-4 text-sm text-gray-400">
 				<div className="grid gap-3">
 					{[
 						{
@@ -138,22 +137,26 @@ const TABS = [
 							ops: "last_run",
 							desc: "Pipeline liveness check",
 						},
-						{ tool: "vla_status", desc: "Scenario brief generation" },
-						{ tool: "vla_help", desc: "Help system across all topics" },
+						{
+							tool: "vla_status",
+							ops: "—",
+							desc: "Scenario brief generation",
+						},
+						{
+							tool: "vla_help",
+							ops: "—",
+							desc: "Help system across all topics",
+						},
 					].map((t) => (
 						<div
 							key={t.tool}
-							className="p-3 rounded-xl border border-border bg-card/40"
+							className="p-3 rounded-xl border border-gray-800 bg-gray-900/40"
 						>
 							<div className="font-mono text-sm text-violet-300">{t.tool}</div>
-							{t.ops && (
-								<div className="text-sm text-muted-foreground mt-0.5">
-									Ops: {t.ops}
-								</div>
+							{t.ops && t.ops !== "—" && (
+								<div className="text-sm text-gray-400 mt-0.5">Ops: {t.ops}</div>
 							)}
-							<div className="text-sm text-muted-foreground mt-0.5">
-								{t.desc}
-							</div>
+							<div className="text-sm text-gray-400 mt-0.5">{t.desc}</div>
 						</div>
 					))}
 				</div>
@@ -165,7 +168,7 @@ const TABS = [
 		label: "Configuration",
 		icon: Cpu,
 		content: () => (
-			<div className="space-y-4 text-sm text-muted-foreground">
+			<div className="space-y-4 text-sm text-gray-400">
 				<p>Key env vars:</p>
 				<pre className="bg-black/40 rounded-xl p-4 text-xs font-mono text-green-400 overflow-x-auto">
 					{`VLA_DEVICE=cuda          # or cpu
@@ -186,9 +189,9 @@ WALLX_REPO_DIR=          # local clone of X-Square-Robot/wall-x`}
 		label: "FAQ",
 		icon: HelpCircle,
 		content: () => (
-			<div className="space-y-4 text-sm text-muted-foreground">
-				<details className="p-3 rounded-xl border border-border bg-card/40">
-					<summary className="cursor-pointer font-medium text-foreground">
+			<div className="space-y-4 text-sm text-gray-400">
+				<details className="p-3 rounded-xl border border-gray-800 bg-gray-900/40">
+					<summary className="cursor-pointer font-medium text-gray-100">
 						Is this a robot patrolling the premises?
 					</summary>
 					<p className="mt-2">
@@ -198,8 +201,8 @@ WALLX_REPO_DIR=          # local clone of X-Square-Robot/wall-x`}
 						attached unless you build one.
 					</p>
 				</details>
-				<details className="p-3 rounded-xl border border-border bg-card/40">
-					<summary className="cursor-pointer font-medium text-foreground">
+				<details className="p-3 rounded-xl border border-gray-800 bg-gray-900/40">
+					<summary className="cursor-pointer font-medium text-gray-100">
 						Does this work with a Tapo cam?
 					</summary>
 					<p className="mt-2">
@@ -209,8 +212,8 @@ WALLX_REPO_DIR=          # local clone of X-Square-Robot/wall-x`}
 						nor the action space a VLA model needs.
 					</p>
 				</details>
-				<details className="p-3 rounded-xl border border-border bg-card/40">
-					<summary className="cursor-pointer font-medium text-foreground">
+				<details className="p-3 rounded-xl border border-gray-800 bg-gray-900/40">
+					<summary className="cursor-pointer font-medium text-gray-100">
 						Can I use this in Resonite?
 					</summary>
 					<p className="mt-2">
@@ -220,8 +223,8 @@ WALLX_REPO_DIR=          # local clone of X-Square-Robot/wall-x`}
 						simulation.
 					</p>
 				</details>
-				<details className="p-3 rounded-xl border border-border bg-card/40">
-					<summary className="cursor-pointer font-medium text-foreground">
+				<details className="p-3 rounded-xl border border-gray-800 bg-gray-900/40">
+					<summary className="cursor-pointer font-medium text-gray-100">
 						Why does this exist if no robot has been trained?
 					</summary>
 					<p className="mt-2">
@@ -261,7 +264,7 @@ export default function HelpPage() {
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Help & Docs</h1>
-					<p className="text-muted-foreground text-sm mt-1">
+					<p className="text-gray-400 text-sm mt-1">
 						VLA pipeline, configuration, and fleet integration reference.
 					</p>
 				</div>
@@ -272,7 +275,7 @@ export default function HelpPage() {
 			</div>
 
 			{/* Horizontal Tabs */}
-			<div className="flex gap-1 overflow-x-auto pb-2 border-b border-border">
+			<div className="flex gap-1 overflow-x-auto pb-2 border-b border-gray-800">
 				{TABS.map((tab) => {
 					const Icon = tab.icon;
 					return (
@@ -282,8 +285,8 @@ export default function HelpPage() {
 							onClick={() => setActiveTab(tab.id)}
 							className={`flex items-center gap-2 px-4 py-3 rounded-t-xl text-sm font-medium transition-all whitespace-nowrap ${
 								activeTab === tab.id
-									? "bg-card border border-b-0 border-border text-foreground shadow-sm"
-									: "text-muted-foreground hover:text-foreground hover:bg-white/5"
+									? "bg-gray-900 border border-b-0 border-gray-800 text-gray-100 shadow-sm"
+									: "text-gray-400 hover:text-gray-100 hover:bg-gray-800"
 							}`}
 						>
 							<Icon className="w-4 h-4" />
@@ -294,14 +297,12 @@ export default function HelpPage() {
 			</div>
 
 			{/* Active Tab */}
-			<div className="animate-in fade-in zoom-in-95 duration-300">
-				{activeContent ? activeContent() : null}
-			</div>
+			<div>{activeContent ? activeContent() : null}</div>
 
 			{/* MCP help docs */}
 			{slugs.length > 0 && (
-				<div className="space-y-3 pt-4 border-t border-border">
-					<h3 className="text-sm font-semibold text-muted-foreground">
+				<div className="space-y-3 pt-4 border-t border-gray-800">
+					<h3 className="text-sm font-semibold text-gray-400">
 						MCP help topics
 					</h3>
 					<div className="flex gap-2 flex-wrap">
@@ -312,8 +313,8 @@ export default function HelpPage() {
 								onClick={() => setSlug(s)}
 								className={`text-sm px-2.5 py-1 rounded-full border transition-colors ${
 									slug === s
-										? "bg-primary/10 border-primary/30 text-primary"
-										: "bg-card border-border text-muted-foreground hover:text-foreground"
+										? "bg-violet-900/40 border-violet-700 text-violet-200"
+										: "bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-100"
 								}`}
 							>
 								{s}
@@ -321,7 +322,7 @@ export default function HelpPage() {
 						))}
 					</div>
 					{content && (
-						<pre className="bg-card border border-border rounded-xl p-4 text-xs whitespace-pre-wrap max-h-[40vh] overflow-y-auto text-muted-foreground">
+						<pre className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-xs whitespace-pre-wrap max-h-[40vh] overflow-y-auto text-gray-400">
 							{content}
 						</pre>
 					)}

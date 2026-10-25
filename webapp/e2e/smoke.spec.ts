@@ -4,8 +4,9 @@ test("dashboard loads with hero, KPIs, and onboarding cue", async ({
 	page,
 }) => {
 	await page.goto("/");
+	await expect(page.getByTestId("dashboard-hero")).toBeVisible();
 	await expect(
-		page.getByRole("heading", { name: "VLA Dashboard" }),
+		page.getByRole("heading", { name: "Vision-Language-Action bridge" }),
 	).toBeVisible();
 	// KPI cards: Server / Version / Episodes / Tools
 	await expect(page.getByText("Server", { exact: true }).first()).toBeVisible();
@@ -25,9 +26,15 @@ test("backend health is reachable through the vite proxy", async ({
 	expect(body.server).toBe("vla-mcp");
 });
 
-test("nav walk: chat and skills pages render", async ({ page }) => {
+test("nav walk: chat, skills, and help pages render", async ({ page }) => {
 	await page.goto("/chat");
 	await expect(page.getByTestId("chat-page")).toBeVisible();
 	await page.goto("/skills");
 	await expect(page.getByTestId("skills-page")).toBeVisible();
+	await page.goto("/help");
+	await expect(page.getByTestId("help-page")).toBeVisible();
+	await page.getByRole("button", { name: "FAQ" }).click();
+	await expect(
+		page.getByText("Why does this exist if no robot has been trained?"),
+	).toBeVisible();
 });
