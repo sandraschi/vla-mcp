@@ -88,7 +88,7 @@ export default function InboxPage() {
 				</div>
 			)}
 			{!error && filtered.length === 0 && (
-				<div className="text-sm text-gray-500">
+				<div className="text-sm text-gray-400">
 					No items match “{query}”.{" "}
 					<button onClick={() => setQuery("")} className="underline">
 						Clear search
@@ -103,7 +103,7 @@ export default function InboxPage() {
 					>
 						<div className="flex items-center gap-2 text-sm">
 							<span
-								className={`text-xs px-2 py-0.5 rounded ${
+								className={`text-sm px-2 py-0.5 rounded ${
 									i.kind === "alert" || i.kind === "check-fail"
 										? "bg-red-900/40 text-red-300"
 										: i.kind === "check-ok"
@@ -116,14 +116,14 @@ export default function InboxPage() {
 							<span className="text-gray-100">{i.title}</span>
 						</div>
 						{i.detail && (
-							<div className="text-xs text-gray-500 mt-1 break-words">
+							<div className="text-sm text-gray-400 mt-1 break-words">
 								{i.detail}
 							</div>
 						)}
 					</div>
 				))}
 			</div>
-			<div className="text-xs text-gray-600 mt-3">
+			<div className="text-sm text-gray-400 mt-3">
 				{filtered.length} of {items.length} items
 			</div>
 		</div>

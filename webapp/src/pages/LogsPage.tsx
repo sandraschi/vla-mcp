@@ -59,7 +59,7 @@ export default function LogsPage() {
 				</div>
 			)}
 			{jobs.length === 0 && !error && (
-				<div className="text-sm text-gray-500">
+				<div className="text-sm text-gray-400">
 					No training jobs yet. Start one from the{" "}
 					<span className="text-violet-400">Training</span> page.
 				</div>
@@ -85,7 +85,7 @@ export default function LogsPage() {
 						<button
 							data-testid="log-refresh"
 							onClick={loadLog}
-							className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-200"
+							className="text-sm px-2 py-1 rounded bg-gray-800 text-gray-200"
 						>
 							Refresh
 						</button>
