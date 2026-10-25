@@ -37,4 +37,7 @@ test("nav walk: chat, skills, and help pages render", async ({ page }) => {
 	await expect(
 		page.getByText("Why does this exist if no robot has been trained?"),
 	).toBeVisible();
+	await page.getByRole("button", { name: "Models" }).click();
+	await expect(page.getByText("Wall-OSS-0.5", { exact: true }).first()).toBeVisible();
+	await expect(page.getByText("DMuon", { exact: true }).first()).toBeVisible();
 });

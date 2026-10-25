@@ -4,10 +4,63 @@ import {
 	Cpu,
 	FlaskConical,
 	HelpCircle,
+	Layers,
 	Server,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiGet } from "../lib/api";
+
+const MODELS = [
+	{
+		name: "Wall-OSS-0.5",
+		what: "A 4-billion-parameter robot brain: show it camera images plus a text command and it outputs motor commands. Works on a real robot with no extra training (pretrain once, act anywhere).",
+		from: "X Square Robot (Shenzhen embodied-AI company building its own robots, e.g. QUANTA X1). Code: github.com/X-Square-Robot/wall-x. Paper: arXiv 2605.30877.",
+		open: "Fully open: training code, weights (Hugging Face x-square-robot), custom GPU operators, LeRobot support. Check the repo for exact license terms.",
+		fresh:
+			"Released May 2026, stack update June 2026 (Wall-X 1.1.0). About 5 months old; predecessor WALL-OSS dates to Sept 2025.",
+		community:
+			"1.3k GitHub stars, docs at x2robot.com, WeChat discussion group, Chinese tech-press coverage.",
+		rivals:
+			"Other open robot brains: pi0, OpenVLA, RDT-1B, SmolVLA, Octo. Closed ones: RT-2, Gemini Robotics.",
+		use: "The big brain we prepare (vla_wall) and fine-tune toward (vla_training). Needs a GPU box and a wall-x clone.",
+	},
+	{
+		name: "WALL-WM",
+		what: "A world action model: it imagines short future videos of what the robot is about to do, and learns from meaningful motion steps (reaching, grasping, lifting) instead of arbitrary fixed-length chunks.",
+		from: "Same X Square Robot team. Code: github.com/X-Square-Robot/wall-wm. Paper: arXiv 2606.01955. Its video half reuses Alibaba's open Wan video-generation model as a physics prior.",
+		open: "Open source: paper plus training/inference code published openly.",
+		fresh: "Released May 2026, workshop version Aug-Sep 2026.",
+		community:
+			"GitHub repo, OpenReview workshop paper, robotsatlas.ai entry, Awesome-World-Action-Models listing.",
+		rivals:
+			"Chunk-based world-action models (e.g. the V-JEPA Policy line of work). The Awesome-World-Action-Models survey maps the field.",
+		use: "The event-joint idea behind our segmentation (vla_events) and rollouts (vla_world_model). Prep-only here, no weights hosted.",
+	},
+	{
+		name: "DMuon",
+		what: "A faster way to train big models across many GPUs: a distributed version of the Muon optimizer that trains almost as cheaply per step as the standard AdamW, reporting ~30% faster embodied-model training.",
+		from: "X Square Robot training team (paper authors Chen, Liu, Cheng). Code: github.com/X-Square-Robot/dmuon. Paper: arXiv 2606.27153.",
+		open: "Published as open source with docs site; check the repo LICENSE file for exact terms.",
+		fresh: "Paper June 2026, release July 2026. A few months old.",
+		community:
+			"GitHub repo plus docs, Chinese tech-press coverage (leiphone, ofweek), third-party guides (ai-infrastructure.net).",
+		rivals:
+			"AdamW (the default everywhere), Moonshot/Kimi's ZeRO-1 distributed Muon (Feb 2025), other distributed-Muon strategies (Megatron-Core/SignMuon variants).",
+		use: "The optimizer our co-training launches with (vla_training launch_co_train, dry-run first, confirm=True to fire).",
+	},
+	{
+		name: "X-VLA",
+		what: "A tiny (0.9B) open robot brain that punches above its weight: it matches a 3-times-bigger pi0 model using a 9M-parameter adapter, by telling the model which robot body it runs on.",
+		from: "Tsinghua AIR (Institute for AI Industry Research) with Shanghai AI Lab and Peking University. Paper: arXiv 2510.10274 (Oct 2025), ICLR 2026. Project: thu-air-dream.github.io/X-VLA, base weights lerobot/xvla-base on Hugging Face.",
+		open: "Fully open: data, code, and parameters published.",
+		fresh:
+			"Oct 2025 paper, ICLR 2026 poster. About a year old, actively benchmarked.",
+		community:
+			"Academic project with VLA-leaderboard presence and wide Chinese community write-ups.",
+		rivals: "pi0-3B (the named baseline it matches), larger generalist VLAs.",
+		use: "The small brain for edge robots (vla_xvla, Raspbot/Boomy targets) where Wall-OSS is too heavy, via PEFT adapters.",
+	},
+];
 
 const TABS = [
 	{
@@ -160,6 +213,55 @@ const TABS = [
 						</div>
 					))}
 				</div>
+			</div>
+		),
+	},
+	{
+		id: "models",
+		label: "Models",
+		icon: Layers,
+		content: () => (
+			<div className="space-y-4">
+				<p className="text-sm text-gray-400">
+					The four open-source ingredients this bridge is built around. All
+					facts below were verified against the projects' own repos and papers
+					in October 2026.
+				</p>
+				{MODELS.map((m) => (
+					<div
+						key={m.name}
+						className="p-4 rounded-xl border border-gray-800 bg-gray-900/40"
+					>
+						<div className="font-mono text-sm text-violet-300">{m.name}</div>
+						<p className="text-sm text-gray-100 mt-1">{m.what}</p>
+						<dl className="text-sm text-gray-400 mt-2 space-y-1">
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">From</dt>
+								<dd>{m.from}</dd>
+							</div>
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">Open?</dt>
+								<dd>{m.open}</dd>
+							</div>
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">Freshness</dt>
+								<dd>{m.fresh}</dd>
+							</div>
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">Community</dt>
+								<dd>{m.community}</dd>
+							</div>
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">Rivals</dt>
+								<dd>{m.rivals}</dd>
+							</div>
+							<div className="flex gap-2">
+								<dt className="shrink-0 w-24 text-gray-300">We use it</dt>
+								<dd>{m.use}</dd>
+							</div>
+						</dl>
+					</div>
+				))}
 			</div>
 		),
 	},

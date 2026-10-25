@@ -107,9 +107,10 @@ export default function Dashboard() {
 					Vision-Language-Action bridge
 				</h1>
 				<p className="text-gray-400 text-sm max-w-2xl mb-4">
-					Wall-OSS-0.5 + WALL-WM + DMuon — event-joint spatial intelligence
-					(wall-x / WALL-E stack). Collect fleet telemetry, segment it into
-					event joints, export numpy shards, and dry-run DMuon co-training.
+					Teach robots by showing them: record teleoperation demos, cut them
+					into meaningful motion steps, and train open-source robot brains with
+					them - rehearsed as a dry run before you spend GPU. The Help tab
+					explains what each model is and where it comes from.
 				</p>
 				<div className="flex flex-wrap gap-2">
 					<Link

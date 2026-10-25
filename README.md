@@ -64,6 +64,17 @@ and run `install.ps1` — or use `uvx vla-mcp` for other clients.
 
 > "Dry-run DMuon co-training on shard train_001."
 
+## The models, in plain words
+
+This bridge exists to feed training data to four open-source projects. Short version of each (verified Oct 2026; details live in the webapp Help tab under Models):
+
+| Model | What it is | From whom | Open? | How fresh | Rivals | What we use it for |
+|-------|-----------|-----------|-------|-----------|--------|-------------------|
+| **Wall-OSS-0.5** | 4B robot brain: camera images + text command in, motor commands out. Runs on real robots with no extra training | X Square Robot, Shenzhen ([wall-x](https://github.com/X-Square-Robot/wall-x), paper arXiv 2605.30877) | Yes: code, weights ([HF](https://huggingface.co/x-square-robot/wall-oss-0.5)), GPU ops, docs | May 2026 (+ June stack update) | Open: pi0, OpenVLA, RDT-1B, SmolVLA, Octo. Closed: RT-2, Gemini Robotics | The big brain we prepare (`vla_wall`) and fine-tune toward |
+| **WALL-WM** | World action model: imagines future video of the motion and learns from meaningful steps (reach, grasp, lift), not fixed chunks | Same X Square team ([wall-wm](https://github.com/X-Square-Robot/wall-wm), paper arXiv 2606.01955; video half reuses Alibaba's open Wan model) | Yes: paper + code open | May 2026 | Chunk-based world-action models (V-JEPA Policy line) | The event-joint idea behind `vla_events` / `vla_world_model` |
+| **DMuon** | Distributed Muon optimizer: trains across GPUs almost as cheaply as AdamW, ~30% faster embodied training | X Square training team ([dmuon](https://github.com/X-Square-Robot/dmuon), paper arXiv 2606.27153) | Open source (check repo license) | June-July 2026 | AdamW, Moonshot's ZeRO-1 distributed Muon | The optimizer our co-training launches with (`vla_training`, dry-run first) |
+| **X-VLA** | Tiny 0.9B open robot brain that matches 3B pi0 via a 9M adapter | Tsinghua AIR + Shanghai AI Lab + Peking U (paper arXiv 2510.10274, ICLR 2026, [site](https://thu-air-dream.github.io/X-VLA)) | Fully open: data, code, params | Oct 2025 | pi0-3B (the baseline it matches) | The small brain for edge robots (`vla_xvla`, Raspbot/Boomy) |
+
 ## Documentation
 
 | Doc | Contents |

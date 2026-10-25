@@ -76,10 +76,16 @@
 
 ### Fixed (round 6, 2026-10-25 — dashboard hero + help page theme)
 - Dashboard hero: gradient banner with backend live/offline pill, version badge,
-  headline, subcopy, and CTAs (Run E2E pipeline / Open Chat / Browse weights).
+  headline, subcopy, and CTAs (Run E2E pipeline / Open Chat / Browse weights);
+  subcopy rewritten in plain words (no jargon soup).
 - Help page: was rendering shadcn theme tokens (`bg-card`, `text-muted-foreground`,
   `border-border`, `animate-in`) that do not exist in this Tailwind v3 setup —
   rewritten 1:1 in the app palette (gray-900/violet); e2e nav-walk extended to /help.
+- New Models tab (Help) + README section: all four ingredients in plain words with
+  verified provenance (X Square Robot / Tsinghua AIR), openness, freshness
+  (May 2026 / June 2026 / July 2026 / Oct 2025), community, rivals, and what
+  vla-mcp uses each one for. Facts sourced from the projects' repos, papers
+  (arXiv 2605.30877, 2606.01955, 2606.27153, 2510.10274), and Hugging Face.
 
 ## [0.3.1b1] - 2026-08-06
 
