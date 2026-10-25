@@ -51,6 +51,10 @@ def setup_webapp(
 ) -> None:
     """Register REST endpoints used by the Vite frontend."""
 
+    from .logbuffer import ensure_attached
+
+    ensure_attached()
+
     @app.get("/api/health")
     async def api_health() -> JSONResponse:
         return JSONResponse({"status": "ok", "server": "vla-mcp"})
@@ -459,19 +463,25 @@ def setup_webapp(
     @app.get("/api/llm/onboarding")
     async def api_llm_onboarding() -> dict:
         """Fresh-install starter facts + recommended path for the under-hero cue."""
+        import shutil as _shutil
+
         discovered = await api_llm_discover()
         detected = [p["id"] for p in discovered["providers"] if p["detected"]]
+        gpu_present = _shutil.which("nvidia-smi") is not None
         if detected:
             path = f"Chat works now via {detected[0]}. Pick a model in Settings."
+        elif gpu_present:
+            path = "GPU detected (nvidia-smi present) but no local LLM is running — install Ollama for GPU-accelerated chat, then pull qwen3:8b."
         else:
             path = "Install Ollama (https://ollama.me) and pull qwen3:8b, then chat here for free."
         return {
             "detected": detected,
             "mock": not detected,
+            "gpu_present": gpu_present,
             "recommended_path": path,
             "facts": [
                 "vla-mcp is a training-pipeline bridge; chat answers VLA/fleet questions.",
-                "DMuon launches and weight downloads are confirm-gated and never auto-run.",
+                "DMuon launches and weight downloads are confirm-gated and never run unasked.",
                 "Keys never leave this server: chat goes through POST /api/llm/chat.",
             ],
         }
@@ -582,6 +592,15 @@ def setup_webapp(
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    @app.get("/api/logs")
+    async def api_logs(level: str = "", q: str = "", limit: int = 200) -> dict:
+        """Ring-buffer server logs for the dashboard Logger modal."""
+        from .logbuffer import ensure_attached, query
+
+        ensure_attached()
+        rows = query(level=level, q=q, limit=limit)
+        return {"logs": rows, "count": len(rows)}
 
     @app.get("/api/v1/diagnostics")
     async def api_diagnostics() -> dict:

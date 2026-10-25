@@ -32,6 +32,42 @@
   `$envSrc` crash + stray-flag syntax error fixed; MCPB audit `clean`, bundle packed +
   smoke-launched (85 KB).
 
+### Fixed (round 3, 2026-10-25 — all remaining deferreds)
+- Discord `fleet-vla`: channel existed with 5 stale pins; posted 2 fresh template posts
+  (humans + agents), unpinned the 5 superseded, pinned the 2 new (exactly 2 pins).
+- Annotations `READ_ONLY`/`MUTATING`/`DESTRUCTIVE` on all 16 tools + `vla_diary`;
+  `output_schema` dialogic envelope on all dict-returning tools.
+- `src/vla_mcp/errors.py`: `_error_response()` (logger.exception auto-log) used on every
+  error path; `_wrap()` normalizes engine results into the envelope (no input mutation).
+- `just e2e` + `just gates-green` recipes; `manifest.json` tools list gains `vla_shutdown`.
+- Webapp: Zustand `store/llm` (provider/model/detected/gpu) wired into Chat + Settings
+  (localStorage persistence kept); Tauri `backend-status` listener + HTTP-poll fallback
+  hook with sidebar dot + Restart Backend (invokes sidecar `start_backend` under Tauri).
+- Apps Hub: backend `GET /api/fleet/apps` (known peers + experimental extras) + Apps page
+  (search, Experimental section) + nav.
+- All 16 pages carry root `data-testid`; Dataset (search/sort/paginate/count), Tools
+  (search/count), Weights (filter/count), Inbox (search/count) leporello-complete;
+  loading/empty/error + retry states everywhere data is fetched.
+- Type scale pass: no `text-xs` on UI text (kept in `<pre>`/code), `text-gray-500/600`
+  body text brightened.
+- Deleted 7 stale `.bak` files; added `renovate.json` (fleet standard: stabilityDays 3,
+  Monday schedule, GH Actions automerge).
+
+### Fixed (round 4, 2026-10-25 — "fix all" remainder)
+- Discord `fleet-vla`: posted fresh humans/agents pair, unpinned 5 superseded, pinned 2.
+- `just e2e` + `just gates-green`; `manifest.json` + `mcpb/manifest.json` tool lists
+  accurate (incl. `vla_shutdown`); `.agents/skills` injection; `bootstrap` installs
+  pre-commit hook (hook materialized); `actionlint` clean; JSON schemas validated.
+- Server log ring buffer (`logbuffer.py`, 500 rec) + `GET /api/logs` (level/text filter).
+- Logger modal (filter/search/export/close, Ctrl+L, Esc) + backend dot + Restart Backend
+  (invokes sidecar `start_backend` under Tauri, re-probe in browser) + zoom % indicator
+  + Ctrl+0 reset; Ctrl+H goes to Help, Ctrl+K focuses page search.
+- MOCK-until-onboarded KPI cards with MOCK badges (clear on first live status);
+  GPU opportunity prompt (`nvidia-smi` presence + no local LLM) in onboarding + Settings.
+- 6 new endpoint tests (shutdown blocked, skills, fleet/apps, onboarding, logs,
+  diagnostics); pytest 60 passed, coverage 58.7%; e2e 3/3 on final tree.
+- Re-packed 85 KB bundle + re-uploaded release assets (current code).
+
 ## [0.3.1b1] - 2026-08-06
 
 ### Added

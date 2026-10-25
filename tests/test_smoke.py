@@ -256,3 +256,66 @@ async def test_api_agentic_blocked():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/api/v1/control/vla_agentic_workflow", json={"goal": "test"})
         assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_api_shutdown_blocked_via_control():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/api/v1/control/vla_shutdown", json={})
+        assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_api_skills_lists_vla_expert():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/skills")
+        assert resp.status_code == 200
+        uris = [s["uri"] for s in resp.json()["skills"]]
+        assert "skill://vla-expert/SKILL.md" in uris
+
+
+@pytest.mark.asyncio
+async def test_api_fleet_apps_registry_shape():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/fleet/apps")
+        assert resp.status_code == 200
+        body = resp.json()
+        names = [a["name"] for a in body["apps"]]
+        assert "vla-mcp" in names
+        assert "worldlabs-mcp" in names
+        assert isinstance(body["experimental"], list)
+
+
+@pytest.mark.asyncio
+async def test_api_llm_onboarding_shape():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/llm/onboarding")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "recommended_path" in body
+        assert isinstance(body["detected"], list)
+
+
+@pytest.mark.asyncio
+async def test_api_logs_ring_buffer():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/logs?limit=5")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body["logs"], list)
+
+
+@pytest.mark.asyncio
+async def test_api_diagnostics_tool_count():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.get("/api/v1/diagnostics")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["tool_count"] >= 16
+        assert any(t["name"] == "vla_shutdown" for t in body["tools"])
