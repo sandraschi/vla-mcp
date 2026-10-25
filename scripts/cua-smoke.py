@@ -100,7 +100,7 @@ BRIDGE_OK_TEXT = cfg("bridge_ok_text", "REST bridge reachable")
 INSTALL_DIR = cfg("install_dir", "%LOCALAPPDATA%\\Pywinauto MCP Operator")
 OPERATOR_EXE = cfg("operator_exe", "pywinauto-mcp-operator.exe")
 PROCESS_NAMES = cfg("backend_process_names", ["pywinauto-mcp-operator", "pywinauto-mcp-backend"])
-NSIS_GLOB = cfg("nsis_glob", "web_sota/src-tauri/target/release/bundle/nsis/Pywinauto MCP Operator_*_x64-setup.exe")
+NSIS_GLOB = cfg("nsis_glob", "native/target/release/bundle/nsis/Vla MCP_*_x64-setup.exe")
 REGISTRY_FILTER = cfg("uninstall_registry_filter", "*Pywinauto*")
 # 60s budget: a freshly-installed PyInstaller onefile backend exe triggers a
 # fresh Windows Defender real-time scan on top of onefile self-extraction to
@@ -545,7 +545,7 @@ def _nav_click_element(win_handle: int, wx: int, wy: int, idx: int, label: str =
             return
     except Exception:
         pass
-    # Try Pane (some WebView versions)  
+    # Try Pane (some WebView versions)
     try:
         elements = w.descendants(control_type="Pane")
         nav_elements = [e for e in elements if e.rectangle().left < wx + 200]
