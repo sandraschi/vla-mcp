@@ -34,7 +34,7 @@ function colorFor(event: string): string {
 export default function EventTimeline({ segments, duration, title }: Props) {
 	if (!segments || segments.length === 0) {
 		return (
-			<p className="text-sm text-gray-500">No event segments to display.</p>
+			<p className="text-sm text-gray-400">No event segments to display.</p>
 		);
 	}
 
@@ -121,7 +121,7 @@ export default function EventTimeline({ segments, duration, title }: Props) {
 				{legend.map((ev) => (
 					<span
 						key={ev}
-						className="flex items-center gap-1.5 text-xs text-gray-400"
+						className="flex items-center gap-1.5 text-sm text-gray-300"
 					>
 						<span
 							className="inline-block w-3 h-3 rounded-sm"
@@ -131,7 +131,7 @@ export default function EventTimeline({ segments, duration, title }: Props) {
 					</span>
 				))}
 			</div>
-			<p className="text-xs text-gray-600 mt-1">
+			<p className="text-sm text-gray-400 mt-1">
 				Semantic event-joints ({segments.length} transitions) — not fixed-time
 				chunks.
 			</p>

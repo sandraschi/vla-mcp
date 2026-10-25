@@ -7,7 +7,8 @@ export default defineConfig({
 	use: { baseURL: "http://127.0.0.1:11025" },
 	webServer: [
 		{
-			command: "uv run uvicorn vla_mcp.server:app --host 127.0.0.1 --port 11024",
+			command:
+				"uv run uvicorn vla_mcp.server:app --host 127.0.0.1 --port 11024",
 			port: 11024,
 			reuseExistingServer: true,
 			timeout: 60_000,
