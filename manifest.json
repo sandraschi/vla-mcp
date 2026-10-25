@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.2",
   "name": "vla-mcp",
-  "version": "0.3.1b1",
+  "version": "0.4.0b1",
   "description": "Vision-Language-Action MCP bridge: Wall-OSS-0.5, WALL-WM, DMuon, X-VLA PEFT, E2E pipeline, notebooks (personal/dev/news diaries)",
   "author": {
     "name": "Sandra Schipal",

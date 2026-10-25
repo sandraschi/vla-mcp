@@ -68,7 +68,7 @@ export default function Dashboard() {
 	const showMock = onboarding?.mock === true && !status;
 	const mockCards = [
 		{ label: "Server", value: "vla-mcp", icon: Activity },
-		{ label: "Version", value: "0.3.1b1", icon: Brain },
+		{ label: "Version", value: "0.4.0b1", icon: Brain },
 		{ label: "Episodes", value: "12", icon: Boxes },
 		{ label: "Tools", value: "18", icon: Download },
 	];

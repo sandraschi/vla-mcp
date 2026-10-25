@@ -1862,7 +1862,7 @@ wheels = [
 
 [[package]]
 name = "vla-mcp"
-version = "0.3.1b1"
+version = "0.4.0b1"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

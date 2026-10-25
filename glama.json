@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/mcp.json",
   "name": "vla-mcp",
-  "version": "0.3.1b1",
+  "version": "0.4.0b1",
   "description": "FastMCP 3.2 VLA bridge: X Square Wall-OSS-0.5, WALL-WM on Wan, DMuon co-training, worldlabs/robotics/avatar fleet loops, plus personal/dev/news diaries (vla_diary).",
   "author": "Sandra Schipal",
   "license": "MIT",

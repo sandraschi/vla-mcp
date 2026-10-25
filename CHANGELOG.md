@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - 2026-10-25 assfix
+## [0.4.0b1] - 2026-10-25 — beta: full webapp, LLM chat, annotations, bounded probes
 ### Fixed
 - MCPB `mcpb/manifest.json` `${PWD}` → `${__dirname}` (bundle starts on real installs).
 - CORS: explicit Tauri origins + LAN/Tailscale `allow_origin_regex`; HTTP transport now serves
