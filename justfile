@@ -31,6 +31,15 @@ e2e:
 gates-green:
     just lint; just test
 
+# Local full gate (Actions is repo-disabled like private repos: fleet standard
+# ships the CI file but gates run here). Mirrors .github/workflows/ci.yml.
+ci:
+    uv run ruff check src tests
+    uv run ruff format src tests --check
+    uv run pyright src
+    uv run pytest tests -q
+    Set-Location '{{justfile_directory()}}\webapp'; npm ci; npm run biome:ci; npm run check; npm run build
+
 lint:
     uv run ruff check src tests
 
