@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "../lib/api";
+import { useLlm } from "../store/llm";
 
 type ChatMsg = { role: "user" | "assistant" | "system"; content: string };
 
@@ -38,12 +39,9 @@ export default function ChatPage() {
 	const [personality, setPersonality] = useState("VLA Coach");
 	const [custom, setCustom] = useState("");
 	const [skillPrompt, setSkillPrompt] = useState("");
-	const [provider, setProvider] = useState(
-		() => localStorage.getItem("llm_provider") ?? "ollama",
-	);
-	const [model, setModel] = useState(
-		() => localStorage.getItem("llm_model") ?? "",
-	);
+	const provider = useLlm((s) => s.provider);
+	const model = useLlm((s) => s.model);
+	const setDetected = useLlm((s) => s.setDetected);
 	const [providerOk, setProviderOk] = useState<boolean | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -58,11 +56,12 @@ export default function ChatPage() {
 		apiGet<{ providers: { id: string; detected: boolean }[] }>(
 			"/api/llm/discover",
 		)
-			.then((d) =>
-				setProviderOk(d.providers.some((p) => p.id === provider && p.detected)),
-			)
+			.then((d) => {
+				setDetected(d.providers.filter((p) => p.detected).map((p) => p.id));
+				setProviderOk(d.providers.some((p) => p.id === provider && p.detected));
+			})
 			.catch(() => setProviderOk(false));
-	}, [provider]);
+	}, [provider, setDetected]);
 
 	useEffect(() => {
 		try {
@@ -163,7 +162,7 @@ export default function ChatPage() {
 						className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-sm text-gray-100"
 					/>
 				)}
-				<span className="text-xs text-gray-400">
+				<span className="text-sm text-gray-400">
 					<span
 						className={`inline-block w-2 h-2 rounded-full mr-1 ${providerOk === null ? "bg-yellow-500" : providerOk ? "bg-green-500" : "bg-red-500"}`}
 					/>
@@ -174,7 +173,7 @@ export default function ChatPage() {
 					data-testid="chat-export"
 					onClick={exportTxt}
 					disabled={messages.length === 0}
-					className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-300 disabled:opacity-40"
+					className="text-sm px-2 py-1 rounded bg-gray-800 text-gray-300 disabled:opacity-40"
 				>
 					Export .txt
 				</button>
@@ -182,7 +181,7 @@ export default function ChatPage() {
 					data-testid="chat-clear"
 					onClick={clear}
 					disabled={messages.length === 0}
-					className="text-xs px-2 py-1 rounded bg-gray-800 text-gray-300 disabled:opacity-40"
+					className="text-sm px-2 py-1 rounded bg-gray-800 text-gray-300 disabled:opacity-40"
 				>
 					Clear
 				</button>
@@ -193,7 +192,7 @@ export default function ChatPage() {
 					<button
 						key={p}
 						onClick={() => send(p)}
-						className="text-xs px-2 py-1 rounded-full border border-violet-800 text-violet-300 hover:bg-violet-900/30"
+						className="text-sm px-2 py-1 rounded-full border border-violet-800 text-violet-300 hover:bg-violet-900/30"
 					>
 						{p}
 					</button>
@@ -214,7 +213,7 @@ export default function ChatPage() {
 					</div>
 				)}
 				{!loading && !error && messages.length === 0 && (
-					<div className="text-sm text-gray-500">
+					<div className="text-sm text-gray-400">
 						No messages yet — pick an example prompt above or ask about your VLA
 						stack.
 					</div>

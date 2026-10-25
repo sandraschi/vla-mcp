@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "../lib/api";
+import { useLlm } from "../store/llm";
 
 type Provider = {
 	id: string;
@@ -14,12 +15,12 @@ export default function SettingsPage() {
 	const [cloud, setCloud] = useState<Cloud[]>([]);
 	const [models, setModels] = useState<string[]>([]);
 	const [live, setLive] = useState(false);
-	const [provider, setProvider] = useState(
-		() => localStorage.getItem("llm_provider") ?? "ollama",
-	);
-	const [model, setModel] = useState(
-		() => localStorage.getItem("llm_model") ?? "",
-	);
+	const provider = useLlm((s) => s.provider);
+	const model = useLlm((s) => s.model);
+	const setProvider = useLlm((s) => s.setProvider);
+	const setModel = useLlm((s) => s.setModel);
+	const setDetected = useLlm((s) => s.setDetected);
+	const setGpuNote = useLlm((s) => s.setGpuNote);
 	const [device, setDevice] = useState("");
 	const [testResult, setTestResult] = useState<string | null>(null);
 	const [testing, setTesting] = useState(false);
@@ -37,6 +38,8 @@ export default function SettingsPage() {
 				setProviders(p.providers);
 				setCloud(p.cloud);
 				setDevice(String(s.device ?? ""));
+				setDetected(p.providers.filter((x) => x.detected).map((x) => x.id));
+				setGpuNote(`Compute device: ${String(s.device ?? "?")}.`);
 			})
 			.catch((e) => setError(e instanceof Error ? e.message : "load failed"))
 			.finally(() => setLoading(false));
@@ -51,23 +54,18 @@ export default function SettingsPage() {
 			.then((d) => {
 				setModels(d.models);
 				setLive(d.live);
-				if (d.models.length > 0) setModel((prev) => prev || d.models[0]);
+				if (d.models.length > 0 && !useLlm.getState().model)
+					setModel(d.models[0]);
 			})
 			.catch(() => {
 				setModels([]);
 				setLive(false);
 			});
-	}, [provider]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [provider, setModel]);
 
 	function save(nextProvider: string, nextModel: string) {
 		setProvider(nextProvider);
 		setModel(nextModel);
-		try {
-			localStorage.setItem("llm_provider", nextProvider);
-			localStorage.setItem("llm_model", nextModel);
-		} catch {
-			/* ignore */
-		}
 	}
 
 	async function test() {
