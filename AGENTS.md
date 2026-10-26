@@ -1,6 +1,6 @@
 # vla-mcp Agent Context
 
-FastMCP 3.2 VLA bridge (v0.2.0): Wall-OSS-0.5, WALL-WM, DMuon, HF weights, event joints.
+FastMCP 3.2 VLA bridge (v0.4.0b1): Wall-OSS-0.5, WALL-WM, DMuon, X-VLA (0.9B), SmolVLA (450M), pi0.5-FAST, Isaac GR00T N1.5, HF weights, event joints, and bimanual targets (`saschibot`, `nori_a3`, `isaac_twin`, `raspbot`, `boomy`).
 
 ## Quick ref
 
