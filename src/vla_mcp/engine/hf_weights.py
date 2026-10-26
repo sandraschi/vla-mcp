@@ -20,6 +20,18 @@ CATALOG = {
         "env_key": "hf_xvla_repo",
         "description": "2toinf X-VLA 0.9B soft-prompted flow-matching VLA for edge PEFT (ICLR 2026; in LeRobot)",
     },
+    "smolvla": {
+        "env_key": "hf_smolvla_repo",
+        "description": "Hugging Face SmolVLA 450M asynchronous flow-matching VLA for SO-101 / Saschibot / Nori A3 (>30-50 Hz)",
+    },
+    "pi0.5-fast": {
+        "env_key": "hf_pi05_repo",
+        "description": "Physical Intelligence pi0.5 / pi0-FAST open-world mobile manipulation VLA with DCT action tokenization",
+    },
+    "gr00t-n1.5": {
+        "env_key": "hf_gr00t_repo",
+        "description": "NVIDIA Isaac GR00T N1.5 3B cross-embodiment bimanual + telescopic lift foundation model",
+    },
 }
 
 
@@ -53,6 +65,12 @@ class HFWeightManager:
             return self.config.hf_wall_wm_repo
         if key in ("x-vla", "xvla", "x_vla"):
             return self.config.hf_xvla_repo
+        if key in ("smolvla", "smol-vla", "smol_vla"):
+            return "lerobot/smolvla_base"
+        if key in ("pi0.5-fast", "pi05-fast", "pi0.5", "pi0_5", "openpi"):
+            return "lerobot/pi05_base"
+        if key in ("gr00t-n1.5", "gr00t", "gr00t_n1_5"):
+            return "nvidia/GR00T-N1.5-3B"
         return None
 
     def list_models(self) -> dict:

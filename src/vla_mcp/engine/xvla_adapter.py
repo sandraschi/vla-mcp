@@ -16,6 +16,9 @@ EDGE_TARGETS = (
     {"id": "raspbot", "mcp": "yahboom-mcp", "notes": "Raspberry Pi 5 Yahboom Raspbot car"},
     {"id": "boomy", "mcp": "yahboom-mcp", "notes": "Yahboom Boomy / secondary edge agent"},
     {"id": "pi5_car", "mcp": "yahboom-mcp", "notes": "Generic Pi5 differential-drive stack"},
+    {"id": "saschibot", "mcp": "rust-saschirob-mcp", "notes": "Wheeled telescoping bimanual DIY A3-equivalent (14-DoF Feetech STS bus + 3-stage lift)"},
+    {"id": "nori_a3", "mcp": "norirobotics-mcp", "notes": "Nori Robotics A3 19-DoF wheeled telescoping bimanual home robot"},
+    {"id": "isaac_twin", "mcp": "isaac-mcp", "notes": "NVIDIA Isaac Sim / Newton-Warp OpenUSD twin stage (saschibot_sim / nori_a3_sim)"},
 )
 
 
