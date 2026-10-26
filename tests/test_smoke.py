@@ -52,6 +52,11 @@ def test_hf_list_models_includes_xvla():
     assert out["success"] is True
     keys = {m["key"] for m in out["models"]}
     assert "x-vla" in keys
+    assert "smolvla" in keys
+    assert "pi0.5-fast" in keys
+    assert "gr00t-n1.5" in keys
+    targets = {t["id"] for t in XVLAAdapter.default().list_targets()["targets"]}
+    assert {"saschibot", "nori_a3", "isaac_twin"}.issubset(targets)
     assert len(out["models"]) >= 3
 
 
