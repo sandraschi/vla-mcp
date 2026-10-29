@@ -25,7 +25,8 @@ MCP bridge for **Vision-Language-Action** — orchestrates X Square [wall-x](htt
 ## Features
 
 - Wall-OSS-0.5 VLA prep (gradient-bridged MoT, flow-matching actions)
-- WALL-WM world model prep (Wan prior, event joints vs equilong chunks)
+- WALL-WM & Google DeepMind Genie 4 world model prep (Wan prior + Gemini Omni prompt-steered rollouts)
+- Tri-tier Dojo bridge with MuJoCo 3.x and NVIDIA Isaac Lab (see `mcp-central-docs/patterns/WORLD_MODEL_ROBOTICS_DOJO.md`)
 - Hugging Face weight download helper
 - Telemetry → event-joint auto-segmentation
 - Dataset registry + numpy export for DMuon
