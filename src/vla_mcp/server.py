@@ -285,20 +285,31 @@ def build_mcp() -> FastMCP:
     @mcp.tool(annotations=_MUTATING, output_schema=_OUT)
     async def vla_world_model(
         operation: Annotated[
-            Literal["health", "train_prepare", "predict_prepare", "event_vocab"],
-            Field(description="WALL-WM world-model operation"),
+            Literal[
+                "health",
+                "train_prepare",
+                "predict_prepare",
+                "event_vocab",
+                "genie4_health",
+                "genie4_rollout_prepare",
+            ],
+            Field(description="World-model operation (WALL-WM / Genie 4)"),
         ],
         notes: Annotated[str | None, Field(description="Notes for train_prepare")] = None,
-        horizon_steps: Annotated[int, Field(description="Rollout horizon for predict_prepare")] = 16,
+        horizon_steps: Annotated[int, Field(description="Rollout horizon for predict_prepare / genie4")] = 16,
+        scenario_prompt: Annotated[
+            str, Field(description="Natural language scenario description for Genie 4 rollout")
+        ] = "Tiled floor with unexpected moving obstacles",
     ) -> dict[str, Any]:
-        """VLA_WORLD_MODEL - WALL-WM world action model (event joints, Wan prior).
+        """VLA_WORLD_MODEL - World action models (WALL-WM + Google DeepMind Genie 4).
 
         ## Return Format
         {"success": bool, "result"?: {...}, "message"?: str, "error"?: str}
 
         ## Examples
         vla_world_model(operation="health")
-        vla_world_model(operation="event_vocab")
+        vla_world_model(operation="genie4_health")
+        vla_world_model(operation="genie4_rollout_prepare", scenario_prompt="wet tiles with obstacle")
         """
         runner = WorldModelRunner.default()
         if operation == "health":
@@ -309,6 +320,13 @@ def build_mcp() -> FastMCP:
             return _wrap(runner.predict_prepare(horizon_steps=horizon_steps), "Predict prep ready.")
         if operation == "event_vocab":
             return _wrap(runner.event_vocab(), "Event vocabulary.")
+        if operation == "genie4_health":
+            return {"success": True, "result": runner.genie4_health(), "message": "Genie 4 world model status."}
+        if operation == "genie4_rollout_prepare":
+            return _wrap(
+                runner.genie4_rollout_prepare(scenario_prompt=scenario_prompt, horizon_steps=horizon_steps),
+                "Genie 4 rollout prepared.",
+            )
         return _error_response(f"Unknown operation: {operation}", error_type="unknown_operation")
 
     @mcp.tool(annotations=_DESTRUCTIVE, output_schema=_OUT)

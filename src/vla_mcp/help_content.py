@@ -38,14 +38,14 @@ def _read_doc(name: str) -> str:
 def _overview() -> str:
     return """# vla-mcp help
 
-Vision-Language-Action bridge: Wall-OSS, WALL-WM, DMuon, X-VLA + fleet loops.
+Vision-Language-Action bridge: Wall-OSS, WALL-WM, Google DeepMind Genie 4, DMuon, X-VLA + fleet loops.
 
 ## Topics (`vla_help(topic="...")`)
 
 | topic | Content |
 |-------|---------|
 | `fleet` / `fleet_integration` | aiwatcher ingest, peers, liveness |
-| `api_keys` | VLA_AIWATCHER_API_KEY / AIWATCHER_API_KEY |
+| `api_keys` | VLA_AIWATCHER_API_KEY / AIWATCHER_API_KEY / GEMINI_API_KEY |
 | `tools` | Portmanteau tool reference |
 | `configuration` | All env vars |
 | `setup` | Install |
@@ -53,6 +53,7 @@ Vision-Language-Action bridge: Wall-OSS, WALL-WM, DMuon, X-VLA + fleet loops.
 
 ## Key tools
 
+- `vla_world_model` - WALL-WM and Google DeepMind Genie 4 world model rollouts
 - `vla_pipeline` - worldlabs → yahboom → dataset → DMuon dry-run
 - `vla_fleet` - peer probes + scenario brief
 - `vla_weights` - HuggingFace Wall-OSS / X-VLA

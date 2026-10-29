@@ -12,6 +12,14 @@ CATALOG = {
         "env_key": "hf_wall_oss_repo",
         "description": "Wall-OSS-0.5 VLA execution weights (gradient-bridged MoT)",
     },
+    "wall-oss-fast": {
+        "env_key": "hf_wall_oss_fast_repo",
+        "description": "X Square Wall-OSS-Fast lightweight real-time VLA execution checkpoint",
+    },
+    "wall-oss-flow": {
+        "env_key": "hf_wall_oss_flow_repo",
+        "description": "X Square Wall-OSS-Flow matching action head checkpoint for continuous control",
+    },
     "wall-wm": {
         "env_key": "hf_wall_wm_repo",
         "description": "WALL-WM world action model (Wan video prior + action DiT)",
@@ -31,6 +39,14 @@ CATALOG = {
     "gr00t-n1.5": {
         "env_key": "hf_gr00t_repo",
         "description": "NVIDIA Isaac GR00T N1.5 3B cross-embodiment bimanual + telescopic lift foundation model",
+    },
+    "cosmos-ar-4b": {
+        "env_key": "hf_cosmos_ar_repo",
+        "description": "NVIDIA Cosmos 1.0 Autoregressive 4B World Foundation Model for action-conditioned rollouts",
+    },
+    "cosmos-tokenizer": {
+        "env_key": "hf_cosmos_tok_repo",
+        "description": "NVIDIA Cosmos Continuous/Discrete Video Tokenizer (CI8x8 / DI8x8)",
     },
 }
 
@@ -61,6 +77,10 @@ class HFWeightManager:
         key = model_key.strip().lower()
         if key in ("wall-oss", "wall-oss-0.5", "wall_oss"):
             return self.config.hf_wall_oss_repo
+        if key in ("wall-oss-fast", "wall_oss_fast"):
+            return "X-Square-Robot/wall-oss-fast"
+        if key in ("wall-oss-flow", "wall_oss_flow"):
+            return "X-Square-Robot/wall-oss-flow"
         if key in ("wall-wm", "wall_wm", "wallwm"):
             return self.config.hf_wall_wm_repo
         if key in ("x-vla", "xvla", "x_vla"):
@@ -71,6 +91,10 @@ class HFWeightManager:
             return "lerobot/pi05_base"
         if key in ("gr00t-n1.5", "gr00t", "gr00t_n1_5"):
             return "nvidia/GR00T-N1.5-3B"
+        if key in ("cosmos-ar-4b", "cosmos-ar", "cosmos_4b"):
+            return "nvidia/Cosmos-1.0-Autoregressive-4B"
+        if key in ("cosmos-tokenizer", "cosmos_tokenizer", "cosmos-tok"):
+            return "nvidia/Cosmos-Tokenizer-CI8x8"
         return None
 
     def list_models(self) -> dict:

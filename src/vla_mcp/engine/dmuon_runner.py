@@ -229,6 +229,25 @@ class DMuonRunner:
         assert root is not None
         script_path = prep.get("train_script")
         if not script_path:
+            if dry_run or not confirm:
+                cmd = [
+                    sys.executable,
+                    "-m",
+                    "wall_x.trainer.fsdp_trainer.train_fsdp",
+                    "--dataset-root",
+                    self.config.dataset_root,
+                    "--device",
+                    self.config.device,
+                ]
+                if dataset_shard:
+                    cmd.extend(["--shard", dataset_shard])
+                return {
+                    "success": True,
+                    "dry_run": True,
+                    "command": cmd,
+                    "cwd": str(root),
+                    "message": "Dry-run DMuon train command from upstream wall-x package.",
+                }
             return {
                 "success": False,
                 "error": "No train script found in upstream repo",
