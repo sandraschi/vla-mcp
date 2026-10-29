@@ -324,3 +324,18 @@ async def test_api_diagnostics_tool_count():
         body = resp.json()
         assert body["tool_count"] >= 16
         assert any(t["name"] == "vla_shutdown" for t in body["tools"])
+
+
+def test_genie4_world_model_operations():
+    from vla_mcp.engine.world_model_runner import WorldModelRunner
+
+    runner = WorldModelRunner.default()
+    health = runner.genie4_health()
+    assert health["model"] == "Genie 4"
+    assert health["provider"] == "Google DeepMind"
+    assert health["multimodal_audio"] is True
+
+    prep = runner.genie4_rollout_prepare(scenario_prompt="Wet tiled floor with dynamic obstacle", horizon_steps=16)
+    assert prep["success"] is True
+    assert prep["horizon_steps"] == 16
+    assert "Genie 4" in prep["message"]
